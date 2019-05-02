@@ -1,0 +1,26 @@
+{
+    "admin": {
+        "dashboard": {
+            "default_controller": "overview",
+            "protected": 0
+        },
+        "themes": {
+            "default_controller": "configure",
+            "protected": 0
+        },
+        "pages": {
+            "default_controller": "general",
+            "protected": 0
+        },
+        "pages": {
+            "default_controller": "advanced",
+            "protected": 0
+        }
+    },
+    "front": {
+        "frontpage": {
+            "default_controller": "main",
+            "protected": 0
+        }
+    }
+}
