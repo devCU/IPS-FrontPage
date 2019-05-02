@@ -13,7 +13,7 @@
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated    02 MAY 2019
+ * @Updated     02 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -45,14 +45,9 @@ class _Application extends \IPS\Application
 	public function init()
 	{
 		/* If the viewing member cannot view the board (ex: guests must login first), then send a 404 Not Found header here, before the Login page shows in the dispatcher */
-		if ( \IPS\Dispatcher::hasInstance() AND \IPS\Dispatcher::i()->controllerLocation === 'front')
+		if ( !\IPS\Member::loggedIn()->group['g_view_board'] and ( \IPS\Request::i()->module == 'pages' and \IPS\Request::i()->controller == 'main' and \IPS\Request::i()->do == 'rss' ) )
 		{
-			if ( !\IPS\Member::loggedIn()->group['g_view_board'] and ( \IPS\Request::i()->module == 'frontpage' and \IPS\Request::i()->controller == 'main' and \IPS\Request::i()->do == 'rss' )
-			or ( \IPS\Member::loggedIn()->members_bitoptions['remove_frontpage_access'] )
-			)
-			{
-				\IPS\Output::i()->error( 'node_error', '2G218/1', 404, '' );
-			}
+			\IPS\Output::i()->error( 'node_error', '2D220/1', 404, '' );
 		}
 	}
 	/**
@@ -91,18 +86,9 @@ class _Application extends \IPS\Application
 	 */
 	public function defaultFrontNavigation()
 	{
-		$browseTabs = array();
-		
-		try
-		{
-			$defaultPage = \IPS\frontpage\Themes\Pages::getDefaultPage();
-			$browseTabs[] = array( 'key' => 'Pages', 'config' => array( 'menu_content_page' => $defaultPage->id, 'menu_title_page_type' => 0 ) );
-		}
-		catch( \OutOfRangeException $ex ) { }
-		
 		return array(
 			'rootTabs'		=> array(),
-			'browseTabs'	=> $browseTabs,
+			'browseTabs'	=> array( array( 'key' => 'Frontpage' ) ),
 			'browseTabsEnd'	=> array(),
 			'activityTabs'	=> array()
 		);
