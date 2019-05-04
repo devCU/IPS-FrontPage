@@ -1,9 +1,0 @@
-{
-	"topLevel": "frontpage",
-	"pages": {
-		"pages": {
-			"friendly": "",
-			"real": "app=frontpage&module=pages&controller=main"
-		}
-	}
-}
