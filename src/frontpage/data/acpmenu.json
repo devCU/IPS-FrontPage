@@ -1,0 +1,70 @@
+{
+    "dashboard": {
+        "overview": {
+            "tab": "frontpage",
+            "controller": "overview",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "settings": {
+            "tab": "frontpage",
+            "controller": "settings",
+            "do": "",
+            "restriction": "settings_manage"
+        }
+    },
+    "themes": {
+        "configure": {
+            "tab": "frontpage",
+            "controller": "configure",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "templates": {
+            "tab": "frontpage",
+            "controller": "templates",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "blocks": {
+            "tab": "frontpage",
+            "controller": "blocks",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "media": {
+            "tab": "frontpage",
+            "controller": "media",
+            "do": "",
+            "restriction": "settings_manage"
+        }
+    },
+    "pages": {
+        "pages": {
+            "tab": "frontpage",
+            "controller": "pages",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "general": {
+            "tab": "frontpage",
+            "controller": "general",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "advanced": {
+            "tab": "frontpage",
+            "controller": "advanced",
+            "do": "",
+            "restriction": "settings_manage"
+        }
+    },
+    "databases": {
+        "databases": {
+            "tab": "frontpage",
+            "controller": "databases",
+            "do": "",
+            "restriction": "settings_manage"
+        }
+    }
+}

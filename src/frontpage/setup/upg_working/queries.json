@@ -1,0 +1,9 @@
+[
+    {
+        "method": "renameTable",
+        "params": [
+            "frontpage_templates",
+            "frontpage_templates"
+        ]
+    }
+]

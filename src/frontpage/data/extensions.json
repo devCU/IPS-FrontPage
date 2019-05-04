@@ -1,0 +1,10 @@
+{
+    "core": {
+        "MemberRestrictions": {
+            "Frontpage": "IPS\\frontpage\\extensions\\core\\MemberRestrictions\\Frontpage"
+        },
+        "FrontNavigation": {
+            "Frontpage": "IPS\\frontpage\\extensions\\core\\FrontNavigation\\Frontpage"
+        }
+    }
+}
