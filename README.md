@@ -40,10 +40,13 @@
 - Example, live demo this weekend
 
 Static
+
 <img src="https://www.devcu.net/mediasrc/FrontPage.PNG?V=1.1" width="50%"></img>
 
+
 Animated (large file)
-<img src="https://www.devcu.net/mediasrc/frontpage.gif?V=1.1" width="50%"></img>
+
+<img src="https://www.devcu.net/mediasrc/frontpage.gif" width="50%"></img>
 
 ## Install
 
