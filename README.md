@@ -46,7 +46,7 @@ Static
 
 Animated (large file)
 
-<img src="https://www.devcu.net/mediasrc/frontpage.gif" width="50%"></img>
+<img src="https://www.devcu.net/mediasrc/frontpage.gif?V=1.1" width="50%"></img>
 
 ## Install
 
