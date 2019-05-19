@@ -453,7 +453,7 @@ EOF;
 		
 		try
 		{
-			$fpage = \IPS\frontpage\Fpages\Fpage:createFromForm( $fpageValues, 'html' );
+			$fpage = \IPS\frontpage\Fpages\Fpage::createFromForm( $fpageValues, 'html' );
 		}
 		catch( \Exception $ex )
 		{
