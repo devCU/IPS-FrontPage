@@ -1,10 +1,57 @@
 {
     "core": {
-        "MemberRestrictions": {
-            "Frontpage": "IPS\\frontpage\\extensions\\core\\MemberRestrictions\\Frontpage"
+        "ContentRouter": {
+            "Records": "IPS\\frontpage\\extensions\\core\\ContentRouter\\Records",
+            "Fpages": "IPS\\frontpage\\extensions\\core\\ContentRouter\\Fpages"
+        },
+        "ModeratorPermissions": {
+            "Databases": "IPS\\frontpage\\extensions\\core\\ModeratorPermissions\\Databases"
+        },
+        "FileStorage": {
+            "Records": "IPS\\frontpage\\extensions\\core\\FileStorage\\Records",
+            "Media": "IPS\\frontpage\\extensions\\core\\FileStorage\\Media",
+            "Fpages": "IPS\\frontpage\\extensions\\core\\FileStorage\\Fpages"
+        },
+        "Sitemap": {
+            "Databases": "IPS\\frontpage\\extensions\\core\\Sitemap\\Databases",
+            "Fpages": "IPS\\frontpage\\extensions\\core\\Sitemap\\Fpages"
+        },
+        "EditorLocations": {
+            "Widgets": "IPS\\frontpage\\extensions\\core\\EditorLocations\\Widgets",
+            "Records": "IPS\\frontpage\\extensions\\core\\EditorLocations\\Records",
+            "BlockContent": "IPS\\frontpage\\extensions\\core\\EditorLocations\\BlockContent"
+        },
+        "CreateMenu": {
+            "Records": "IPS\\frontpage\\extensions\\core\\CreateMenu\\Records"
+        },
+        "Uninstall": {
+            "Widgets": "IPS\\frontpage\\extensions\\core\\Uninstall\\Widgets",
+            "Databases": "IPS\\frontpage\\extensions\\core\\Uninstall\\Databases"
+        },
+        "Queue": {
+            "RebuildCommentLikes": "IPS\\frontpage\\extensions\\core\\Queue\\RebuildCommentLikes",
+            "RebuildCategories": "IPS\\frontpage\\extensions\\core\\Queue\\RebuildCategories",
+            "RebuildEditorFields": "IPS\\frontpage\\extensions\\core\\Queue\\RebuildEditorFields",
+            "RebuildReciprocalMaps": "IPS\\frontpage\\extensions\\core\\Queue\\RebuildReciprocalMaps",
+            "RebuildRecords": "IPS\\frontpage\\extensions\\core\\Queue\\RebuildRecords",
+            "ResyncTopicContent": "IPS\\frontpage\\extensions\\core\\Queue\\ResyncTopicContent",
+            "ConvertFpages": "IPS\\frontpage\\extensions\\core\\Queue\\ConvertFpages"
+        },
+        "DesignersMode": {
+            "Frontpage": "IPS\\frontpage\\extensions\\core\\DesignersMode\\Frontpage"
         },
         "FrontNavigation": {
-            "Frontpage": "IPS\\frontpage\\extensions\\core\\FrontNavigation\\Frontpage"
+            "Fpages": "IPS\\frontpage\\extensions\\core\\FrontNavigation\\Fpages"
+        },
+        "OutputPlugins": {
+            "Database": "IPS\\frontpage\\extensions\\core\\OutputPlugins\\Database",
+            "Block": "IPS\\frontpage\\extensions\\core\\OutputPlugins\\Block",
+            "Fpageurl": "IPS\\frontpage\\extensions\\core\\OutputPlugins\\Fpageurl",
+            "Media": "IPS\\frontpage\\extensions\\core\\OutputPlugins\\Media",
+            "Widget": "IPS\\frontpage\\extensions\\core\\OutputPlugins\\Widget"
+        },
+        "MemberSync": {
+            "Databases": "IPS\\frontpage\\extensions\\core\\MemberSync\\Databases"
         }
     }
 }
