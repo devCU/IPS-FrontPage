@@ -96,7 +96,7 @@ class _record extends \IPS\Content\Controller
 		$activeTabContents = $record->commentReviews( $tab );
 		$comments = \count( $tabs ) ? \IPS\frontpage\Theme::i()->getTemplate( $record->container()->_template_display, 'frontpage', 'database' )->commentsAndReviewsTabs( \IPS\Theme::i()->getTemplate( 'global', 'core' )->tabs( $tabs, $tab, $activeTabContents, $record->url(), 'tab', FALSE, TRUE ), md5( $record->url() ) ) : NULL;
 
-		if ( \IPS\Request::i()->isAjax() and ( isset( \IPS\Request::i()->page ) OR isset( \IPS\Request::i()->tab ) ) and $activeTabContents )
+		if ( \IPS\Request::i()->isAjax() and ( isset( \IPS\Request::i()->content ) OR isset( \IPS\Request::i()->tab ) ) and $activeTabContents )
 		{
 			\IPS\Output::i()->sendOutput( $activeTabContents, 200, 'text/html', \IPS\Output::i()->httpHeaders );
 		}
@@ -204,7 +204,7 @@ class _record extends \IPS\Content\Controller
 			'@type'			=> "Article",
 			'url'			=> (string) $record->url(),
 			'discussionUrl'	=> (string) $record->url(),
-			'mainEntityOfPage'	=> (string) $record->url(),
+			'mainEntityOfContent'	=> (string) $record->url(),
 			'name'			=> $record->_title,
 			'headline'		=> $record->_title,
 			'text'			=> $jsonLdText,
@@ -213,7 +213,7 @@ class _record extends \IPS\Content\Controller
 			'datePublished'	=> \IPS\DateTime::ts( $record->record_publish_date ?: $record->record_saved )->format( \IPS\DateTime::ISO8601 ),
 			'dateModified'	=> \IPS\DateTime::ts( $record->record_edit_time ?: ( $record->record_publish_date ?: $record->record_saved ) )->format( \IPS\DateTime::ISO8601 ),
 			'pageStart'		=> 1,
-			'pageEnd'		=> $record->commentPageCount(),
+			'pageEnd'		=> $record->commentContentCount(),
 			'author'		=> array(
 				'@type'		=> 'Person',
 				'name'		=> \IPS\Member::load( $record->member_id )->name,
@@ -346,7 +346,7 @@ class _record extends \IPS\Content\Controller
 		{
 			\IPS\Output::i()->breadcrumb[] = array( $link ? $item->url() : NULL, $item->mapped('title') );
 
-			$title = ( isset( \IPS\Request::i()->page ) and \IPS\Request::i()->page > 1 ) ? \IPS\Member::loggedIn()->language()->addToStack( 'title_with_page_number', FALSE, array( 'sprintf' => array( $item->mapped('title') . ' - ' . $database->pageTitle(), \IPS\Request::i()->page ) ) ) : $item->mapped('title') . ' - ' . $database->pageTitle();
+			$title = ( isset( \IPS\Request::i()->content ) and \IPS\Request::i()->content > 1 ) ? \IPS\Member::loggedIn()->language()->addToStack( 'title_with_page_number', FALSE, array( 'sprintf' => array( $item->mapped('title') . ' - ' . $database->contentTitle(), \IPS\Request::i()->content ) ) ) : $item->mapped('title') . ' - ' . $database->contentTitle();
 			\IPS\Output::i()->title = $title;
 		}
 	}
@@ -550,7 +550,7 @@ class _record extends \IPS\Content\Controller
 		$conflicts    = array();
 		$form         = new \IPS\Helpers\Form( 'form', 'content_revision_restore' );
 
-		/* Add a "cancel" button that will take you back to the previous page */
+		/* Add a "cancel" button that will take you back to the previous content */
 		array_unshift( $form->actionButtons, \IPS\Theme::i()->getTemplate( 'forms', 'core', 'global' )->button( 'cancel', 'link', $record->url()->setQueryString( array( 'do' => 'revisions', 'd' => $record::$customDatabaseId ) ), 'ipsButton ipsButton_link', array( 'tabindex' => '3', 'accesskey' => 'c' ) ) );
 
 		/* Build up our data set */
@@ -704,8 +704,8 @@ class _record extends \IPS\Content\Controller
 		
 		\IPS\Output::i()->allowDefaultWidgets = FALSE;
 		\IPS\Output::i()->sidebar['enabled'] = FALSE;
-		\IPS\frontpage\Pages\Page::$currentPage->getWidgets();
-		\IPS\frontpage\Databases\Dispatcher::i()->output = $form->customTemplate( array( \IPS\frontpage\Theme::i()->getTemplate( $database->template_form, 'frontpage', 'database' ), 'recordForm' ), NULL, $category, $database, \IPS\frontpage\Pages\Page::$currentPage, $title, $hasModOptions );
+		\IPS\frontpage\Fpages\Fpage::$currentContent->getWidgets();
+		\IPS\frontpage\Databases\Dispatcher::i()->output = $form->customTemplate( array( \IPS\frontpage\Theme::i()->getTemplate( $database->template_form, 'frontpage', 'database' ), 'recordForm' ), NULL, $category, $database, \IPS\frontpage\Fpages\Fpage::$currentContent, $title, $hasModOptions );
 		\IPS\Output::i()->title = \IPS\Member::loggedIn()->language()->addToStack( $title );
 		\IPS\Output::i()->cssFiles = array_merge( \IPS\Output::i()->cssFiles, \IPS\Theme::i()->css( 'records/form.css', 'frontpage', 'front' ) );
 		
