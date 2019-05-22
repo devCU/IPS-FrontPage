@@ -3,17 +3,17 @@
  *     Support this Project... Keep it free! Become an Open Source Patron
  *                       https://www.patreon.com/devcu
  *
- * @brief       FrontPage Template Model
+ * @brief		Templates Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     02 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -40,7 +40,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 }
 
 /**
- *	Template Model
+ * @brief	Template Model
  */
 class _Templates extends \IPS\Patterns\ActiveRecord
 {
@@ -85,9 +85,9 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 	const RETURN_BLOCK = 2;
 	
 	/**
-	 * @brief	Return page templates
+	 * @brief	Return fpage templates
 	 */
-	const RETURN_PAGE = 4;
+	const RETURN_FPAGE = 4;
 	
 	/**
 	 * @brief	Return database templates
@@ -268,8 +268,8 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 				case 'block':
 					$returnType = self::RETURN_BLOCK;
 				break;
-				case 'page':
-					$returnType = self::RETURN_PAGE;
+				case 'fpage':
+					$returnType = self::RETURN_FPAGE;
 				break;
 				case 'database':
 					$returnType = self::RETURN_DATABASE;
@@ -290,9 +290,9 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 				$locations[] = 'block';
 			}
 			
-			if ( $returnType & self::RETURN_PAGE )
+			if ( $returnType & self::RETURN_FPAGE )
 			{
-				$locations[] = 'page';
+				$locations[] = 'fpage';
 			}
 			
 			if ( $returnType & self::RETURN_DATABASE )
@@ -351,9 +351,9 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 					$flags += \IPS\frontpage\Theme::RETURN_BLOCK;
 				}
 
-				if ( $returnType & self::RETURN_PAGE )
+				if ( $returnType & self::RETURN_FPAGE )
 				{
-					$flags += \IPS\frontpage\Theme::RETURN_PAGE;
+					$flags += \IPS\frontpage\Theme::RETURN_FPAGE;
 				}
 
 				if ( $returnType & self::RETURN_DATABASE )
@@ -392,9 +392,9 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 					$locations[] = 'block';
 				}
 
-				if ( $returnType & self::RETURN_PAGE )
+				if ( $returnType & self::RETURN_FPAGE )
 				{
-					$locations[] = 'page';
+					$locations[] = 'fpage';
 				}
 
 				if ( $returnType & self::RETURN_DATABASE )
@@ -530,7 +530,7 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 	 */
 	public function isSuitableForCustomWrapper()
 	{
-		if ( $this->location == 'page' and preg_match( '#<html([^>]+?)?>#', $this->content ) )
+		if ( $this->location == 'fpage' and preg_match( '#<html([^>]+?)?>#', $this->content ) )
 		{
 			if ( preg_match( '#\$html(\s|=|,)#', $this->params ) and preg_match( '#\$title(\s|=|,|$)#', $this->params ) )
 			{
@@ -548,7 +548,7 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 	 */
 	public function isSuitableForBuilderWrapper()
 	{
-		if ( $this->location == 'page' and mb_stristr( $this->content, '{template="widgetContainer"' ) )
+		if ( $this->location == 'fpage' and mb_stristr( $this->content, '{template="widgetContainer"' ) )
 		{
 			return true;
 		}
@@ -709,7 +709,7 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 				$content = $functionName();
 			}
 			
-			$this->file_object = (string) \IPS\File::create( 'frontpage_Pages', $this->title, $content ?: ' ', 'page_objects', TRUE );
+			$this->file_object = (string) \IPS\File::create( 'frontpage_Fpages', $this->title, $content ?: ' ', 'fpage_objects', TRUE );
 			parent::save(); # Go to parent save to prevent $this->save() from wiping file objects
 		}
 
@@ -728,15 +728,15 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 		{
 			try
 			{
-				\IPS\File::get( 'frontpage_Pages', $this->file_object )->delete();
+				\IPS\File::get( 'frontpage_Fpages', $this->file_object )->delete();
 			}
 			catch ( \Exception $e )
 			{
 				/* Just to be sure nothing is throw, we don't care too much if it's not deleted */
 			}
 
-			/* Trash all cached page file objects too */
-			\IPS\frontpage\Pages\Page::deleteCachedIncludes( $this->file_object );
+			/* Trash all cached fpage file objects too */
+			\IPS\frontpage\Fpages\Fpage::deleteCachedIncludes( $this->file_object );
 
 			$this->file_object = NULL;
 		}
