@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -102,7 +102,7 @@ class _Media extends \IPS\Node\Model
 	/**
 	 * @brief	[Node] Title
 	 */
-	public static $nodeTitle = 'page';
+	public static $nodeTitle = 'fpage';
 
 	/**
 	 * @brief	[Node] ACP Restrictions
@@ -122,7 +122,7 @@ class _Media extends \IPS\Node\Model
 	 */
 	protected static $restrictions = array(
 			'app'		=> 'frontpage',
-			'module'	=> 'pages',
+			'module'	=> 'fpages',
 			'prefix' 	=> 'media_'
 	);
 
@@ -264,7 +264,7 @@ class _Media extends \IPS\Node\Model
 		$buttons['key'] = array(
 			'icon'	=> 'file-code-o',
 			'title'	=> 'frontpage_media_key',
-			'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=themes&controller=media&do=key&id=' . $this->id ),
+			'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=media&do=key&id=' . $this->id ),
 			'data'  => array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('frontpage_media_key') )
 		);
 
@@ -273,7 +273,7 @@ class _Media extends \IPS\Node\Model
 			$buttons['preview'] = array(
 				'icon'	=> 'search',
 				'title'	=> 'frontpage_media_preview',
-				'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=themes&controller=media&do=preview&id=' . $this->id ),
+				'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=media&do=preview&id=' . $this->id ),
 				'data'  => array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('frontpage_media_preview') )
 			);
 		}
@@ -296,7 +296,7 @@ class _Media extends \IPS\Node\Model
 	public function form( &$form )
 	{
 		/* Build form */
-		$form->add( new \IPS\Helpers\Form\Upload( 'media_filename', ( ( $this->filename ) ? \IPS\File::get( 'frontpage_Media', $this->file_object ) : NULL ), FALSE, array( 'obscure' => FALSE, 'maxFileSize' => 5, 'storageExtension' => 'frontpage_Media', 'storageContainer' => 'pages_media' ), NULL, NULL, NULL, 'media_filename' ) );
+		$form->add( new \IPS\Helpers\Form\Upload( 'media_filename', ( ( $this->filename ) ? \IPS\File::get( 'frontpage_Media', $this->file_object ) : NULL ), FALSE, array( 'obscure' => FALSE, 'maxFileSize' => 5, 'storageExtension' => 'frontpage_Media', 'storageContainer' => 'fpages_media' ), NULL, NULL, NULL, 'media_filename' ) );
 			
 		$form->add( new \IPS\Helpers\Form\Node( 'media_parent', $this->parent ? $this->parent : 0, FALSE, array(
 			'class'    => '\IPS\frontpage\Media\Folder',
@@ -344,7 +344,7 @@ class _Media extends \IPS\Node\Model
 			}
 			catch( \Exception $ex ) { }
 
-			$values['file_object'] = (string) \IPS\File::create( 'frontpage_Media', $values['filename_stored'], $values['media_filename']->contents(), 'pages_media', TRUE, NULL, FALSE );
+			$values['file_object'] = (string) \IPS\File::create( 'frontpage_Media', $values['filename_stored'], $values['media_filename']->contents(), 'fpages_media', TRUE, NULL, FALSE );
 
 			unset( $values['media_filename'] );
 		}
@@ -536,7 +536,7 @@ class _Media extends \IPS\Node\Model
 		{
 			$test = static::load( $path, 'media_full_path' );
 
-			$test->file_object = \IPS\File::create( 'frontpage_Media', $test->filename_stored, $contents, 'pages_media', TRUE, NULL, FALSE );
+			$test->file_object = \IPS\File::create( 'frontpage_Media', $test->filename_stored, $contents, 'fpages_media', TRUE, NULL, FALSE );
 			$test->save();
 
 			return $test->id;
@@ -601,7 +601,7 @@ class _Media extends \IPS\Node\Model
 			$media->added           = time();
 			$media->full_path       = $path;
 			$media->filename_stored = $folderId . '_' . $filename;
-			$media->file_object     = \IPS\File::create( 'frontpage_Media', $media->filename_stored, $contents, 'pages_media', TRUE, NULL, FALSE );
+			$media->file_object     = \IPS\File::create( 'frontpage_Media', $media->filename_stored, $contents, 'fpages_media', TRUE, NULL, FALSE );
 			$media->is_image        = $media->file_object->isImage();
 			$media->save();
 
