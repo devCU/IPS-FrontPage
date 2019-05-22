@@ -6,7 +6,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 	exit;
 }
 
-class cms_hook_Post extends _HOOK_CLASS_
+class frontpage_hook_Post extends _HOOK_CLASS_
 {
 	/**
 	 * Create comment
@@ -87,13 +87,13 @@ class cms_hook_Post extends _HOOK_CLASS_
 		$synced = array();
 		
 		/* We used to restrict by forum ID in these two queries, but if you move a topic to a new forum then the counts no longer sync properly */
-		foreach( \IPS\Db::i()->select( '*', 'cms_database_categories', array( 'category_forum_record=? AND category_forum_comments=?', 1, 1 ) ) as $category )
+		foreach( \IPS\Db::i()->select( '*', 'frontpage_database_categories', array( 'category_forum_record=? AND category_forum_comments=?', 1, 1 ) ) as $category )
 		{
 			try
 			{
 				if ( ! \in_array( $category['category_database_id'], $synced ) )
 				{
-					$class    = '\IPS\cms\Records' . $category['category_database_id'];
+					$class    = '\IPS\frontpage\Records' . $category['category_database_id'];
 					$object	  = $class::load( $item->tid, 'record_topicid' );
 					$object->syncRecordFromTopic( $item );
 					
@@ -106,13 +106,13 @@ class cms_hook_Post extends _HOOK_CLASS_
 			}
 		}
 		
-		foreach( \IPS\Db::i()->select( '*', 'cms_databases', array( 'database_forum_record=? AND database_forum_comments=?', 1, 1 ) ) as $database )
+		foreach( \IPS\Db::i()->select( '*', 'frontpage_databases', array( 'database_forum_record=? AND database_forum_comments=?', 1, 1 ) ) as $database )
 		{
 			try
 			{
 				if ( ! \in_array( $database['database_id'], $synced ) )
 				{
-					$class = '\IPS\cms\Records' . $database['database_id'];
+					$class = '\IPS\frontpage\Records' . $database['database_id'];
 					$object = $class::load( $item->tid, 'record_topicid' );
 					$object->syncRecordFromTopic( $item );
 				}

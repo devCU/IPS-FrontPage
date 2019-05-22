@@ -6,7 +6,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 	exit;
 }
 
-class cms_hook_Topic extends _HOOK_CLASS_
+class frontpage_hook_Topic extends _HOOK_CLASS_
 {
 	/**
 	 * Can view?
@@ -25,7 +25,7 @@ class cms_hook_Topic extends _HOOK_CLASS_
 		if ( ! $canView )
 		{
 			/* Check to see if it's attached to a database record and we are not a guest */
-			if ( isset( \IPS\Request::i()->do ) and \in_array( \IPS\Request::i()->do, $do ) and $record = \IPS\cms\Records::getLinkedRecord( $this ) and $member->member_id )
+			if ( isset( \IPS\Request::i()->do ) and \in_array( \IPS\Request::i()->do, $do ) and $record = \IPS\frontpage\Records::getLinkedRecord( $this ) and $member->member_id )
 			{
 				return $record->canView();
 			}
@@ -49,38 +49,38 @@ class cms_hook_Topic extends _HOOK_CLASS_
 		if ( $action === 'delete' )
 		{
 			/* We used to restrict by forum ID but if you move a topic to a new forum then the forum ID will no longer match */
-			foreach( \IPS\Db::i()->select( '*', 'cms_database_categories', array( 'category_forum_record=? AND category_forum_comments=?', 1, 1 ) ) as $category )
+			foreach( \IPS\Db::i()->select( '*', 'frontpage_database_categories', array( 'category_forum_record=? AND category_forum_comments=?', 1, 1 ) ) as $category )
 			{
 				try
 				{
-					$class    = '\IPS\cms\Records' . $category['category_database_id'];
+					$class    = '\IPS\frontpage\Records' . $category['category_database_id'];
 
 					if( class_exists( $class ) )
 					{
 						$class::load( $this->tid, 'record_topicid' );
 
-						$database = \IPS\cms\Databases::load( $category['category_database_id'] );
-						\IPS\Member::loggedIn()->language()->words['cms_delete_linked_topic'] = sprintf( \IPS\Member::loggedIn()->language()->get('cms_delete_linked_topic'), $database->recordWord( 1 ) );
+						$database = \IPS\frontpage\Databases::load( $category['category_database_id'] );
+						\IPS\Member::loggedIn()->language()->words['frontpage_delete_linked_topic'] = sprintf( \IPS\Member::loggedIn()->language()->get('frontpage_delete_linked_topic'), $database->recordWord( 1 ) );
 
-						\IPS\Output::i()->error( 'cms_delete_linked_topic', '1T281/1', 403, '' );
+						\IPS\Output::i()->error( 'frontpage_delete_linked_topic', '1T281/1', 403, '' );
 					}
 
 				}
 				catch( \Exception $ex ) { }
 			}
 			
-			foreach( \IPS\Db::i()->select( '*', 'cms_databases', array( 'database_forum_record=? AND database_forum_comments=?', 1, 1 ) ) as $database )
+			foreach( \IPS\Db::i()->select( '*', 'frontpage_databases', array( 'database_forum_record=? AND database_forum_comments=?', 1, 1 ) ) as $database )
 			{
 				try
 				{
-					$class = '\IPS\cms\Records' . $database['database_id'];
+					$class = '\IPS\frontpage\Records' . $database['database_id'];
 
 					$class::load( $this->tid, 'record_topicid' );
 					
-					$database = \IPS\cms\Databases::constructFromData( $database );
-					\IPS\Member::loggedIn()->language()->words['cms_delete_linked_topic'] = sprintf( \IPS\Member::loggedIn()->language()->get('cms_delete_linked_topic'), $database->recordWord( 1 ) );
+					$database = \IPS\frontpage\Databases::constructFromData( $database );
+					\IPS\Member::loggedIn()->language()->words['frontpage_delete_linked_topic'] = sprintf( \IPS\Member::loggedIn()->language()->get('frontpage_delete_linked_topic'), $database->recordWord( 1 ) );
 					
-					\IPS\Output::i()->error( 'cms_delete_linked_topic', '1T281/1', 403, '' );
+					\IPS\Output::i()->error( 'frontpage_delete_linked_topic', '1T281/1', 403, '' );
 				}
 				catch( \Exception $ex ) { }
 			}
@@ -90,11 +90,11 @@ class cms_hook_Topic extends _HOOK_CLASS_
 
 		if ( $action === 'lock' or $action === 'unlock' )
 		{
-			foreach( \IPS\Db::i()->select( '*', 'cms_databases', array( 'database_forum_record=? AND database_forum_comments=?', 1, 1 ) ) as $database )
+			foreach( \IPS\Db::i()->select( '*', 'frontpage_databases', array( 'database_forum_record=? AND database_forum_comments=?', 1, 1 ) ) as $database )
 			{
 				try
 				{
-					$class = '\IPS\cms\Records' . $database['database_id'];
+					$class = '\IPS\frontpage\Records' . $database['database_id'];
 					$record = $class::load( $this->tid, 'record_topicid' );
 				
 					$record->record_locked = ( $action === 'lock' ) ? 1 : 0;
@@ -113,7 +113,7 @@ class cms_hook_Topic extends _HOOK_CLASS_
 	 */
 	public function canMerge( $member=NULL )
 	{
-		if ( \IPS\cms\Records::topicIsLinked( $this ) )
+		if ( \IPS\frontpage\Records::topicIsLinked( $this ) )
 		{
 			return FALSE;
 		}

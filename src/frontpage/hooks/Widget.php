@@ -6,7 +6,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 	exit;
 }
 
-abstract class cms_hook_Widget extends _HOOK_CLASS_
+abstract class frontpage_hook_Widget extends _HOOK_CLASS_
 {
 	/**
 	 * Delete caches
@@ -18,7 +18,7 @@ abstract class cms_hook_Widget extends _HOOK_CLASS_
 	 */
 	static public function deleteCaches( $key=NULL, $app=NULL, $plugin=NULL )
 	{
-		\IPS\cms\Widget::deleteCachesForBlocks( $key, $app, $plugin );
+		\IPS\frontpage\Widget::deleteCachesForBlocks( $key, $app, $plugin );
       
 		/* Hand over to normal method */
 		parent::deleteCaches( $key, $app, $plugin );
