@@ -1,5 +1,9 @@
 [
     {
+        "key": "fpage_extension",
+        "default": ".html"
+    },
+    {
         "key": "frontpage_application_name",
         "default": "FrontPage"
     },
@@ -8,7 +12,7 @@
         "default": "0"
     },
     {
-        "key": "frontpage_error_page",
+        "key": "frontpage_error_fpage",
         "default": "0"
     },
     {
@@ -28,7 +32,7 @@
         "default": "*"
     },
     {
-        "key": "frontpage_root_content_url",
+        "key": "frontpage_root_fpage_url",
         "default": ""
     },
     {
@@ -40,8 +44,12 @@
         "default": "0"
     },
     {
-        "key": "fpage_extension",
-        "default": ".html"
+        "key": "sitemap_databases_count",
+        "default": "-1"
+    },
+    {
+        "key": "sitemap_databases_priority",
+        "default": "1"
     },
     {
         "key": "sitemap_fpages_count",
@@ -49,14 +57,6 @@
     },
     {
         "key": "sitemap_fpages_priority",
-        "default": "1"
-    },
-    {
-        "key": "sitemap_databases_count",
-        "default": "-1"
-    },
-    {
-        "key": "sitemap_databases_priority",
         "default": "1"
     }
 ]

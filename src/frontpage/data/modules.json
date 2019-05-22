@@ -4,12 +4,16 @@
             "default_controller": "overview",
             "protected": 0
         },
+        "fpages": {
+            "default_controller": "fpages",
+            "protected": 0
+        },
         "themes": {
             "default_controller": "configure",
             "protected": 0
         },
-        "fpages": {
-            "default_controller": "fpages",
+        "templates": {
+            "default_controller": "templates",
             "protected": 0
         },
         "databases": {
