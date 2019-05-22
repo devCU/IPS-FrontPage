@@ -21,7 +21,7 @@ class frontpage_hook_Output extends _HOOK_CLASS_
 	 */
 	public function error( $message, $code, $httpStatusCode=500, $adminMessage=NULL, $httpHeaders=array(), $extra=NULL, $faultyAppOrHookId=NULL )
 	{
-		if ( ! isset( \IPS\Settings::i()->frontpage_error_page ) or ! \IPS\Settings::i()->frontpage_error_page )
+		if ( ! isset( \IPS\Settings::i()->frontpage_error_fpage ) or ! \IPS\Settings::i()->frontpage_error_fpage )
 		{
 			parent::error( $message, $code, $httpStatusCode, $adminMessage, $httpHeaders, $extra, $faultyAppOrHookId );
 		}
