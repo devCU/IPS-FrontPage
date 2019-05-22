@@ -26,13 +26,13 @@ class frontpage_hook_Url extends _HOOK_CLASS_
 		
 		/* If the normal handling doesn't recognise it as an internal URL and we
 			have a gateway file, check that */
-		if ( !( $return instanceof \IPS\Http\Url\Internal ) and \IPS\Settings::i()->frontpage_root_page_url )
+		if ( !( $return instanceof \IPS\Http\Url\Internal ) and \IPS\Settings::i()->frontpage_root_fpage_url )
 		{
 			/* Decode it */
 			$components = static::componentsFromUrlString( $url, $autoEncode );
 						
 			/* Is it underneath the gateway? */
-			$gatewayUrlComponents = static::componentsFromUrlString( \IPS\Settings::i()->frontpage_root_page_url  );
+			$gatewayUrlComponents = static::componentsFromUrlString( \IPS\Settings::i()->frontpage_root_fpage_url  );
 			if ( $components[ static::COMPONENT_HOST ] === $gatewayUrlComponents[ static::COMPONENT_HOST ] and
 				$components[ static::COMPONENT_USERNAME ] === $gatewayUrlComponents[ static::COMPONENT_USERNAME ] and
 				$components[ static::COMPONENT_PASSWORD ] === $gatewayUrlComponents[ static::COMPONENT_PASSWORD ] and
@@ -52,24 +52,24 @@ class frontpage_hook_Url extends _HOOK_CLASS_
 					$pathFromGatewayUrl = trim( mb_substr( $queryString, 0, mb_strpos( $queryString, '&' ) ?: NULL ), '/' );
 				}
 
-				/* Try to find a page */
-				$page = NULL;
+				/* Try to find a fpage */
+				$fpage = NULL;
 				try
 				{
-					$page = \IPS\frontpage\Pages\Page::loadFromPath( $pathFromGatewayUrl );
+					$fpage = \IPS\frontpage\Fpages\Fpage::loadFromPath( $pathFromGatewayUrl );
 					return \IPS\Http\Url\Friendly::createFromComponents( $components[ static::COMPONENT_HOST ], $components[ static::COMPONENT_SCHEME ], $components[ static::COMPONENT_PATH ], $components[ static::COMPONENT_QUERY ], $components[ static::COMPONENT_PORT ], $components[ static::COMPONENT_USERNAME ], $components[ static::COMPONENT_PASSWORD ], $components[ static::COMPONENT_FRAGMENT ] )
-					->setFriendlyUrlData( 'content_page_path', array( $pathFromGatewayUrl ), array( 'path' => $pathFromGatewayUrl ), $pathFromGatewayUrl );
+					->setFriendlyUrlData( 'content_fpage_path', array( $pathFromGatewayUrl ), array( 'path' => $pathFromGatewayUrl ), $pathFromGatewayUrl );
 				}
 				/* Couldn't find one? Don't accept responsibility, unless there was no $pathFromGatewayUrl and this is the gateway URL */
 				catch ( \OutOfRangeException $e )
 				{
-					if ( $fallback and (string) $return->stripQueryString() === \IPS\Settings::i()->frontpage_root_page_url )
+					if ( $fallback and (string) $return->stripQueryString() === \IPS\Settings::i()->frontpage_root_fpage_url )
 					{
 						try
 						{
-							$page = \IPS\frontpage\Pages\Page::loadFromPath( '' );
+							$fpage = \IPS\frontpage\Fpages\Fpage::loadFromPath( '' );
 							return \IPS\Http\Url\Friendly::createFromComponents( $components[ static::COMPONENT_HOST ], $components[ static::COMPONENT_SCHEME ], $components[ static::COMPONENT_PATH ], $components[ static::COMPONENT_QUERY ], $components[ static::COMPONENT_PORT ], $components[ static::COMPONENT_USERNAME ], $components[ static::COMPONENT_PASSWORD ], $components[ static::COMPONENT_FRAGMENT ] )
-							->setFriendlyUrlData( 'content_page_path', array( '' ), array( 'path' => '' ), '' );
+							->setFriendlyUrlData( 'content_fpage_path', array( '' ), array( 'path' => '' ), '' );
 						}
 						catch ( \OutOfRangeException $e ) { }
 					}
