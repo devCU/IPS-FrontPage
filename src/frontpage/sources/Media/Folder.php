@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -29,6 +29,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see http://www.gnu.org/licenses/
  */
+
 namespace IPS\frontpage\Media;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
@@ -137,7 +138,7 @@ class _Folder extends \IPS\Node\Model
 	 */
 	protected static $restrictions = array(
  		'app'		=> 'frontpage',
- 		'module'	=> 'pages',
+ 		'module'	=> 'fpages',
  		'all'		=> 'media_manage',
  		'prefix'	=> 'media_'
 	);
@@ -186,7 +187,7 @@ class _Folder extends \IPS\Node\Model
 			$buttons['add']['data']  = array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('frontpage_add_media_folder') );
 			$buttons['add']['link']	 = $url->setQueryString( array( 'subnode' => 0, 'do' => 'form', 'parent' => $this->_id ) );
 			
-			$buttons['add_page'] = array(
+			$buttons['add_fpage'] = array(
 					'icon'	=> 'plus-circle',
 					'title'	=> 'frontpage_add_media',
 					'link'	=> $url->setQueryString( array( 'subnode' => 1, 'do' => 'add', 'parent' => $this->_id ) ),
@@ -200,9 +201,9 @@ class _Folder extends \IPS\Node\Model
 			$return['edit'] = $buttons['edit'];
 		}
 		
-		if ( isset( $buttons['add_page'] ) )
+		if ( isset( $buttons['add_fpage'] ) )
 		{
-			$return['add_page'] = $buttons['add_page'];
+			$return['add_fpage'] = $buttons['add_fpage'];
 		}
 		
 		if ( isset( $buttons['add'] ) )
