@@ -3,17 +3,17 @@
  *     Support this Project... Keep it free! Become an Open Source Patron
  *                       https://www.patreon.com/devcu
  *
- * @brief       FrontPage Designer's Mode Theme
+ * @brief		Designer's Mode Theme
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     02 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -81,7 +81,7 @@ class _Theme extends \IPS\frontpage\Theme
 	{
 		$seen = array();
 		
-		foreach( array( 'block', 'page', 'database', 'js', 'css' ) as $location )
+		foreach( array( 'block', 'fpage', 'database', 'js', 'css' ) as $location )
 		{
 			$templates = iterator_to_array( \IPS\Db::i()->select(
 					"*, MD5( CONCAT(template_location, ',', template_group, ',', template_title) ) as bit_key",
