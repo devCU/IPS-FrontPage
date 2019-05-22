@@ -53,11 +53,11 @@ class _index extends \IPS\frontpage\Databases\Controller
 	public function manage()
 	{
 		/* If the Databases module is set as default we end up here, but not routed through the database dispatcher which means the
-			database ID isn't set. In that case, just re-route back through the pages controller which handles everything. */
+			database ID isn't set. In that case, just re-route back through the contents controller which handles everything. */
 		if( \IPS\frontpage\Databases\Dispatcher::i()->databaseId === NULL )
 		{
-			$pages = new \IPS\frontpage\modules\front\pages\page;
-			return $pages->manage();
+			$contents = new \IPS\frontpage\modules\front\contents\content;
+			return $contents->manage();
 		}
 
 		$database = \IPS\frontpage\Databases::load( \IPS\frontpage\Databases\Dispatcher::i()->databaseId );
@@ -81,7 +81,7 @@ class _index extends \IPS\frontpage\Databases\Controller
 	{
 		$database    = \IPS\frontpage\Databases::load( \IPS\frontpage\Databases\Dispatcher::i()->databaseId );
 		$recordClass = 'IPS\frontpage\Records' . \IPS\frontpage\Databases\Dispatcher::i()->databaseId;
-		$url         = \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . \IPS\frontpage\Pages\Page::$currentPage->full_path, 'front', 'content_page_path', \IPS\frontpage\Pages\Page::$currentPage->full_path );
+		$url         = \IPS\Http\Url::internal( "app=frontpage&module=contents&controller=content&path=" . \IPS\frontpage\Fpages\Fpage::$currentContent->full_path, 'front', 'content_content_path', \IPS\frontpage\Fpages\Fpage::$currentContent->full_path );
 
 		/* RSS */
 		if ( $database->rss )
@@ -112,11 +112,11 @@ class _index extends \IPS\frontpage\Databases\Controller
 			}
 		}
 
-		$page = isset( \IPS\Request::i()->page ) ? \intval( \IPS\Request::i()->page ) : 1;
+		$content = isset( \IPS\Request::i()->content ) ? \intval( \IPS\Request::i()->content ) : 1;
 
-		if( $page < 1 )
+		if( $content < 1 )
 		{
-			$page = 1;
+			$content = 1;
 		}
 
 		if ( $database->cat_index_type === 1 and ! isset( \IPS\Request::i()->show ) )
@@ -125,9 +125,9 @@ class _index extends \IPS\frontpage\Databases\Controller
 			$limit = 0;
 			$count = 0;
 
-			if ( isset( \IPS\Request::i()->page ) )
+			if ( isset( \IPS\Request::i()->content ) )
 			{
-				$limit = $database->featured_settings['perpage'] * ( $page - 1 );
+				$limit = $database->featured_settings['perpage'] * ( $content - 1 );
 			}
 
 			$where = ( $database->featured_settings['featured'] ) ? array( array( 'record_featured=?', 1 ) ) : NULL;
@@ -147,18 +147,18 @@ class _index extends \IPS\frontpage\Databases\Controller
 
 			/* Pagination */
 			$pagination = array(
-				'page'  => $page,
-				'pages' => ( $count > 0 ) ? ceil( $count / $database->featured_settings['perpage'] ) : 1
+				'content'  => $content,
+				'contents' => ( $count > 0 ) ? ceil( $count / $database->featured_settings['perpage'] ) : 1
 			);
 			
-			/* Make sure we are viewing a real page */
-			if ( $page > $pagination['pages'] )
+			/* Make sure we are viewing a real content */
+			if ( $content > $pagination['contents'] )
 			{
-				\IPS\Output::i()->redirect( \IPS\Request::i()->url()->setPage( 'page', 1 ), NULL, 303 );
+				\IPS\Output::i()->redirect( \IPS\Request::i()->url()->setContent( 'content', 1 ), NULL, 303 );
 			}
 			
 			\IPS\Output::i()->cssFiles = array_merge( \IPS\Output::i()->cssFiles, \IPS\Theme::i()->css( 'database_index/featured.css', 'frontpage', 'front' ) );
-			\IPS\Output::i()->title = ( $page > 1 ) ? \IPS\Member::loggedIn()->language()->addToStack( 'title_with_page_number', FALSE, array( 'sprintf' => array( $database->pageTitle(), $page ) ) ) : $database->pageTitle();
+			\IPS\Output::i()->title = ( $content > 1 ) ? \IPS\Member::loggedIn()->language()->addToStack( 'title_with_page_number', FALSE, array( 'sprintf' => array( $database->contentTitle(), $content ) ) ) : $database->contentTitle();
 
 			\IPS\frontpage\Databases\Dispatcher::i()->output .= \IPS\Output::i()->output = \IPS\frontpage\Theme::i()->getTemplate( $database->template_featured, 'frontpage', 'database' )->index( $database, $articles, $url, $pagination );
 		}
@@ -172,7 +172,7 @@ class _index extends \IPS\frontpage\Databases\Controller
 			$categories = $class::roots();
 
 			\IPS\Output::i()->cssFiles = array_merge( \IPS\Output::i()->cssFiles, \IPS\Theme::i()->css( 'records/index.css', 'frontpage', 'front' ) );
-			\IPS\Output::i()->title = $database->pageTitle();
+			\IPS\Output::i()->title = $database->contentTitle();
 			\IPS\frontpage\Databases\Dispatcher::i()->output .= \IPS\Output::i()->output = \IPS\frontpage\Theme::i()->getTemplate( $database->template_categories, 'frontpage', 'database' )->index( $database, $categories, $url );
 		}
 	}
@@ -184,29 +184,29 @@ class _index extends \IPS\frontpage\Databases\Controller
 	 */
 	protected function form()
 	{
-		/* If the page is the default page and Pages is the default app, the node selector cannot find the page as it bypasses the Database dispatcher */
-		if ( \IPS\frontpage\Pages\Page::$currentPage === NULL and \IPS\frontpage\Databases\Dispatcher::i()->databaseId === NULL and isset( \IPS\Request::i()->page_id ) )
+		/* If the content is the default content and Contents is the default app, the node selector cannot find the content as it bypasses the Database dispatcher */
+		if ( \IPS\frontpage\Fpages\Fpage::$currentContent === NULL and \IPS\frontpage\Databases\Dispatcher::i()->databaseId === NULL and isset( \IPS\Request::i()->content_id ) )
 		{
 			try
 			{
-				\IPS\frontpage\Pages\Page::$currentPage = \IPS\frontpage\Pages\Page::load( \IPS\Request::i()->page_id );
-				$database = \IPS\frontpage\Pages\Page::$currentPage->getDatabase();
+				\IPS\frontpage\Fpages\Fpage::$currentContent = \IPS\frontpage\Fpages\Fpage::load( \IPS\Request::i()->content_id );
+				$database = \IPS\frontpage\Fpages\Fpage::$currentContent->getDatabase();
 				
 			}
 			catch( \OutOfRangeException $e )
 			{
-				\IPS\Output::i()->error( 'content_err_page_404', '2T389/1', 404, '' );
+				\IPS\Output::i()->error( 'content_err_fpage_404', '2T389/1', 404, '' );
 			}
 		}
-		else if ( \IPS\frontpage\Pages\Page::$currentPage === NULL and \IPS\frontpage\Databases\Dispatcher::i()->databaseId === NULL and isset( \IPS\Request::i()->d ) )
+		else if ( \IPS\frontpage\Fpages\Fpage::$currentContent === NULL and \IPS\frontpage\Databases\Dispatcher::i()->databaseId === NULL and isset( \IPS\Request::i()->d ) )
 		{
-			\IPS\frontpage\Pages\Page::$currentPage = \IPS\frontpage\Pages\Page::loadByDatabaseId( \IPS\Request::i()->d );
+			\IPS\frontpage\Fpages\Fpage::$currentContent = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( \IPS\Request::i()->d );
 		}
 		
 		$form = new \IPS\Helpers\Form( 'select_category', 'continue' );
 		$form->class = 'ipsForm_vertical ipsForm_noLabels';
 		$form->add( new \IPS\Helpers\Form\Node( 'category', NULL, TRUE, array(
-			'url'					=> \IPS\frontpage\Pages\Page::$currentPage->url()->setQueryString( array( 'do' => 'form', 'page_id' => \IPS\frontpage\Pages\Page::$currentPage->id ) ),
+			'url'					=> \IPS\frontpage\Fpages\Fpage::$currentContent->url()->setQueryString( array( 'do' => 'form', 'content_id' => \IPS\frontpage\Fpages\Fpage::$currentContent->id ) ),
 			'class'					=> 'IPS\frontpage\Categories' . \IPS\frontpage\Databases\Dispatcher::i()->databaseId,
 			'permissionCheck'		=> function( $node )
 			{

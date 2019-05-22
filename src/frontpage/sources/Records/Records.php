@@ -3,17 +3,17 @@
  *     Support this Project... Keep it free! Become an Open Source Patron
  *                       https://www.patreon.com/devcu
  *
- * @brief       FrontPage Records Model
+ * @brief		Records Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -203,11 +203,11 @@ class _Records extends \IPS\Content\Item implements
 	}
 
 	/**
-	 * Set custom posts per page setting
+	 * Set custom posts per fpage setting
 	 *
 	 * @return int
 	 */
-	public static function getCommentsPerPage()
+	public static function getCommentsPerFpage()
 	{
 		if ( ! empty( \IPS\frontpage\Databases\Dispatcher::i()->recordId ) )
 		{
@@ -218,21 +218,21 @@ class _Records extends \IPS\Content\Item implements
 				
 				if ( $record->_forum_record and $record->_forum_comments and \IPS\Application::appIsEnabled('forums') )
 				{
-					return \IPS\forums\Topic::getCommentsPerPage();
+					return \IPS\forums\Topic::getCommentsPerFpage();
 				}
 			}
 			catch( \OutOfRangeException $e )
 			{
 				/* recordId is usually the record we're viewing, but this method is called on recordFeed widgets in horizontal mode which means recordId may not be __this__ record, so fail gracefully */
-				return static::database()->field_perpage;
+				return static::database()->field_perfpage;
 			}
 		}
 		else if( static::database()->forum_record and static::database()->forum_comments and \IPS\Application::appIsEnabled('forums') )
 		{
-			return \IPS\forums\Topic::getCommentsPerPage();
+			return \IPS\forums\Topic::getCommentsPerFpage();
 		}
 
-		return static::database()->field_perpage;
+		return static::database()->field_perfpage;
 	}
 
 	/**
@@ -738,9 +738,9 @@ class _Records extends \IPS\Content\Item implements
 	protected $displayContent = NULL;
 
 	/**
-	 * [brief] Record page
+	 * [brief] Record fpage
 	 */
-	protected $recordPage = NULL;
+	protected $recordFpage = NULL;
 
 	/**
 	 * [brief] Custom Display Fields
@@ -1228,18 +1228,18 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	public function url( $action=NULL )
 	{
-		if ( ! $this->recordPage )
+		if ( ! $this->recordFpage )
 		{
-			/* If we're coming through the database controller embedded in a page, $currentPage will be set. If we're coming in via elsewhere, we need to fetch the page */
+			/* If we're coming through the database controller embedded in a fpage, $currentFpage will be set. If we're coming in via elsewhere, we need to fetch the fpage */
 			try
 			{
-				$this->recordPage = \IPS\frontpage\Pages\Page::loadByDatabaseId( static::$customDatabaseId );
+				$this->recordFpage = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( static::$customDatabaseId );
 			}
 			catch( \OutOfRangeException $ex )
 			{
-				if ( \IPS\frontpage\Pages\Page::$currentPage )
+				if ( \IPS\frontpage\Fpages\Fpage::$currentFpage )
 				{
-					$this->recordPage = \IPS\frontpage\Pages\Page::$currentPage;
+					$this->recordFpage = \IPS\frontpage\Fpages\Fpage::$currentFpage;
 				}
 				else
 				{
@@ -1248,20 +1248,20 @@ class _Records extends \IPS\Content\Item implements
 			}
 		}
 
-		if ( $this->recordPage )
+		if ( $this->recordFpage )
 		{
-			$pagePath   = $this->recordPage->full_path;
+			$fpagePath   = $this->recordFpage->full_path;
 			$class		= '\IPS\frontpage\Categories' . static::$customDatabaseId;
 			$catPath    = $class::load( $this->category_id )->full_path;
 			$recordSlug = ! $this->record_static_furl ? $this->record_dynamic_furl . '-r' . $this->primary_id_field : $this->record_static_furl;
 
 			if ( static::database()->use_categories )
 			{
-				$url = \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . $pagePath . '/' . $catPath . '/' . $recordSlug, 'front', 'content_page_path', $recordSlug );
+				$url = \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $fpagePath . '/' . $catPath . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
 			}
 			else
 			{
-				$url = \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . $pagePath . '/' . $recordSlug, 'front', 'content_page_path', $recordSlug );
+				$url = \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $fpagePath . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
 			}
 		}
 
@@ -1363,20 +1363,20 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	public static function urlFromIndexData( $indexData, $itemData )
 	{
-		if ( static::$pagePath === NULL )
+		if ( static::$fpagePath === NULL )
 		{
-			static::$pagePath = \IPS\Db::i()->select( array( 'page_full_path' ), 'frontpage_pages', array( 'page_id=?', static::database()->page_id ) )->first();
+			static::$fpagePath = \IPS\Db::i()->select( array( 'fpage_full_path' ), 'frontpage_fpages', array( 'fpage_id=?', static::database()->fpage_id ) )->first();
 		}
 		
 		$recordSlug = !$itemData['record_static_furl'] ? $itemData['record_dynamic_furl']  . '-r' . $itemData['primary_id_field'] : $itemData['record_static_furl'];
 		
 		if ( static::database()->use_categories )
 		{
-			return \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . static::$pagePath . '/' . $itemData['extra'] . '/' . $recordSlug, 'front', 'content_page_path', $recordSlug );
+			return \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . static::$fpagePath . '/' . $itemData['extra'] . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
 		}
 		else
 		{
-			return \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . static::$pagePath . '/' . $recordSlug, 'front', 'content_page_path', $recordSlug );
+			return \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . static::$fpagePath . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
 		}
 	}
 
@@ -2053,8 +2053,8 @@ class _Records extends \IPS\Content\Item implements
 	/**
 	 * Get comments
 	 *
-	 * @param	int|NULL			$limit					The number to get (NULL to use static::getCommentsPerPage())
-	 * @param	int|NULL			$offset					The number to start at (NULL to examine \IPS\Request::i()->page)
+	 * @param	int|NULL			$limit					The number to get (NULL to use static::getCommentsPerFpage())
+	 * @param	int|NULL			$offset					The number to start at (NULL to examine \IPS\Request::i()->fpage)
 	 * @param	string				$order					The column to order by
 	 * @param	string				$orderDirection			"asc" or "desc"
 	 * @param	\IPS\Member|NULL	$member					If specified, will only get comments by that member
@@ -2075,21 +2075,21 @@ class _Records extends \IPS\Content\Item implements
 			/* If we are pulling in ASC order we want to jump up by 1 to account for the first post, which is not a comment */
 			if( mb_strtolower( $orderDirection ) == 'asc' )
 			{
-				$_pageValue = ( \IPS\Request::i()->page ? \intval( \IPS\Request::i()->page ) : 1 );
+				$_fpageValue = ( \IPS\Request::i()->fpage ? \intval( \IPS\Request::i()->fpage ) : 1 );
 
-				if( $_pageValue < 1 )
+				if( $_fpageValue < 1 )
 				{
-					$_pageValue = 1;
+					$_fpageValue = 1;
 				}
 				
-				$offset = ( ( $_pageValue - 1 ) * static::getCommentsPerPage() ) + 1;
+				$offset = ( ( $_fpageValue - 1 ) * static::getCommentsPerFpage() ) + 1;
 			}
 			
 			return $recordClass::load( $this->record_topicid )->comments( $limit, $offset, $order, $orderDirection, $member, $includeHiddenComments, $cutoff, $extraWhereClause, $bypassCache, $includeDeleted, $canViewWarn );
 		}
 		else
 		{
-			/* Because this is a static property, it may have been overridden by a block on the same page. */
+			/* Because this is a static property, it may have been overridden by a block on the same fpage. */
 			if ( \get_called_class() != 'IPS\frontpage\Records\RecordsTopicSync' . static::$customDatabaseId )
 			{
 				static::$commentClass = 'IPS\frontpage\Records\Comment' . static::$customDatabaseId;
@@ -2106,34 +2106,34 @@ class _Records extends \IPS\Content\Item implements
 	}
 
 	/**
-	 * Get review page count
+	 * Get review fpage count
 	 *
 	 * @return	int
 	 */
-	public function reviewPageCount()
+	public function reviewFpageCount()
 	{
-		if ( $this->reviewPageCount === NULL )
+		if ( $this->reviewFpageCount === NULL )
 		{
 			$reviewClass = static::$reviewClass;
 			$idColumn = static::$databaseColumnId;
 			$where = array( array( $reviewClass::$databasePrefix . $reviewClass::$databaseColumnMap['item'] . '=?', $this->$idColumn ) );
 			$where[] = array( 'review_database_id=?', static::$customDatabaseId );
 			$count = $reviewClass::getItemsWithPermission( $where, NULL, NULL, 'read', \IPS\Content\Hideable::FILTER_AUTOMATIC, 0, NULL, FALSE, FALSE, FALSE, TRUE );
-			$this->reviewPageCount = ceil( $count / static::$reviewsPerPage );
+			$this->reviewFpageCount = ceil( $count / static::$reviewsPerFpage );
 
-			if( $this->reviewPageCount < 1 )
+			if( $this->reviewFpageCount < 1 )
 			{
-				$this->reviewPageCount	= 1;
+				$this->reviewFpageCount	= 1;
 			}
 		}
-		return $this->reviewPageCount;
+		return $this->reviewFpageCount;
 	}
 
 	/**
 	 * Get reviews
 	 *
-	 * @param	int|NULL			$limit					The number to get (NULL to use static::getCommentsPerPage())
-	 * @param	int|NULL			$offset					The number to start at (NULL to examine \IPS\Request::i()->page)
+	 * @param	int|NULL			$limit					The number to get (NULL to use static::getCommentsPerFpage())
+	 * @param	int|NULL			$offset					The number to start at (NULL to examine \IPS\Request::i()->fpage)
 	 * @param	string				$order					The column to order by (NULL to examine \IPS\Request::i()->sort)
 	 * @param	string				$orderDirection			"asc" or "desc" (NULL to examine \IPS\Request::i()->sort)
 	 * @param	\IPS\Member|NULL	$member					If specified, will only get comments by that member
@@ -2601,7 +2601,7 @@ class _Records extends \IPS\Content\Item implements
 			throw new \UnexpectedValueException('content_record_bad_forum_for_topic');
 		}
 
-		/* Run a test for the record url, this call will throw an LogicException if the database isn't associated to a page */
+		/* Run a test for the record url, this call will throw an LogicException if the database isn't associated to a fpage */
 		try
 		{
 			$this->url();
@@ -2750,19 +2750,19 @@ class _Records extends \IPS\Content\Item implements
 	}
 	
 	/**
-	 * @brief	Store the comment page count otherwise $topic->posts is reduced by 1 each time it is called
+	 * @brief	Store the comment fpage count otherwise $topic->posts is reduced by 1 each time it is called
 	 */
-	protected $recordCommentPageCount = NULL;
+	protected $recordCommentFpageCount = NULL;
 	
 	/**
-	 * Get comment page count
+	 * Get comment fpage count
 	 *
 	 * @param	bool		$recache		TRUE to recache the value
 	 * @return	int
 	 */
-	public function commentPageCount( $recache=FALSE )
+	public function commentFpageCount( $recache=FALSE )
 	{
-		if ( $this->recordCommentPageCount === NULL or $recache === TRUE )
+		if ( $this->recordCommentFpageCount === NULL or $recache === TRUE )
 		{
 			if ( $this->useForumComments() )
 			{
@@ -2778,26 +2778,26 @@ class _Records extends \IPS\Content\Item implements
 						/* Compensate for the first post (which is actually the record) */
 						$topic->posts = ( $topic->posts - 1 ) > 0 ? $topic->posts - 1 : 0;
 						
-						/* Get our page count considering all of that */
-						$this->recordCommentPageCount = $topic->commentPageCount();
+						/* Get our fpage count considering all of that */
+						$this->recordCommentFpageCount = $topic->commentFpageCount();
 						
 						/* Reset the count back to the real count */
 						$topic->posts = $realCount;
 					}
 					else
 					{
-						$this->recordCommentPageCount = 1;
+						$this->recordCommentFpageCount = 1;
 					}
 				}
 				catch( \Exception $e ) { }
 			}
 			else
 			{
-				$this->recordCommentPageCount = parent::commentPageCount( $recache );
+				$this->recordCommentFpageCount = parent::commentFpageCount( $recache );
 			}
 		}
 		
-		return $this->recordCommentPageCount;
+		return $this->recordCommentFpageCount;
 	}
 
 	/**
@@ -2883,7 +2883,7 @@ class _Records extends \IPS\Content\Item implements
 
 		try
 		{
-			\IPS\frontpage\Pages\Page::loadByDatabaseId( static::database()->id );
+			\IPS\frontpage\Fpages\Fpage::loadByDatabaseId( static::database()->id );
 		}
 		catch( \OutOfRangeException $e )
 		{
@@ -3035,7 +3035,7 @@ class _Records extends \IPS\Content\Item implements
 	 * During canCreate() check, verify member can access the module too
 	 *
 	 * @param	\IPS\Member	$member		The member
-	 * @note	The only reason this is abstracted at this time is because Pages creates dynamic 'modules' with its dynamic records class which do not exist
+	 * @note	The only reason this is abstracted at this time is because Fpages creates dynamic 'modules' with its dynamic records class which do not exist
 	 * @return	bool
 	 */
 	protected static function _canAccessModule( \IPS\Member $member )
@@ -3387,7 +3387,7 @@ class _Records extends \IPS\Content\Item implements
 	
 	/**
 	 * Search Index Permissions
-	 * If we don't have a page, we don't want to add this to the search index
+	 * If we don't have a fpage, we don't want to add this to the search index
 	 *
 	 * @return	string	Comma-delimited values or '*'
 	 * 	@li			Number indicates a group

@@ -103,7 +103,7 @@ class _categories extends \IPS\Node\Controller
 	 *
 	 * @param	array	$order	The new ordering that was saved
 	 * @return	void
-	 * @note	Pages needs to readjust category_full_path values when a category is moved to a different category
+	 * @note	Contents needs to readjust category_full_path values when a category is moved to a different category
 	 */
 	protected function _afterReorder( $order )
 	{

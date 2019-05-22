@@ -21,12 +21,12 @@ class frontpage_hook_Output extends _HOOK_CLASS_
 	 */
 	public function error( $message, $code, $httpStatusCode=500, $adminMessage=NULL, $httpHeaders=array(), $extra=NULL, $faultyAppOrHookId=NULL )
 	{
-		if ( ! isset( \IPS\Settings::i()->frontpage_error_page ) or ! \IPS\Settings::i()->frontpage_error_page )
+		if ( ! isset( \IPS\Settings::i()->frontpage_error_fpage ) or ! \IPS\Settings::i()->frontpage_error_fpage )
 		{
 			parent::error( $message, $code, $httpStatusCode, $adminMessage, $httpHeaders, $extra, $faultyAppOrHookId );
 		}
 
-		/* When we log out, the user is taken back to the page they were just on. If this is producing a "no permission" error, redirect them to the index instead */
+		/* When we log out, the user is taken back to the fpage they were just on. If this is producing a "no permission" error, redirect them to the index instead */
 		if ( isset( \IPS\Request::i()->_fromLogout ) )
 		{
 			// _fromLogout=1 indicates that they came from log out. To make sure that we don't cause an infinite redirect (which
@@ -96,7 +96,7 @@ class frontpage_hook_Output extends _HOOK_CLASS_
 		}
 				
 		/* Send output */
-		\IPS\frontpage\Pages\Page::errorPage( $title, $message, $code, $httpStatusCode, $httpHeaders );
+		\IPS\frontpage\Fpages\Fpage::errorPage( $title, $message, $code, $httpStatusCode, $httpHeaders );
 	}
 
 }

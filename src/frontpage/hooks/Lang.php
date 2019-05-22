@@ -24,7 +24,7 @@ class frontpage_hook_Lang extends _HOOK_CLASS_
 			return;
 		}
 
-		/* Ensure applications set up correctly before task is executed. Pages, for example, needs to set up spl autoloaders first */
+		/* Ensure applications set up correctly before task is executed. Fpages, for example, needs to set up spl autoloaders first */
 		\IPS\Application::applications();
 		
 		/* Add in the database specific language bits and bobs */

@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     19 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -443,7 +443,7 @@ EOF;
 		$fpageValues = array(
 			'fpage_name'         => "Articles",
 			'fpage_title'        => "Articles",
-			'fpage_seo_name'     => "articles.html",
+			'fpage_seo_name'     => "index.html",
 			'fpage_folder_id'    => 0,
 			'fpage_ipb_wrapper'  => 1,
 			'fpage_show_sidebar' => 1,
@@ -666,7 +666,7 @@ EOF;
 		
 		try
 		{
-			$defaultFpage = \IPS\frontpage\Fpages\fpage::getDefaultFpage();
+			$defaultFpage = \IPS\frontpage\Fpages\Fpage::getDefaultFpage();
 			$browseTabs[] = array( 'key' => 'Fpages', 'config' => array( 'menu_content_fpage' => $defaultFpage->id, 'menu_title_fpage_type' => 0 ) );
 		}
 		catch( \OutOfRangeException $ex ) { }

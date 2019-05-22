@@ -1,16 +1,16 @@
 {
-    "frontpage_page_widget_areas": {
-        "name": "frontpage_page_widget_areas",
+    "frontpage_fpage_widget_areas": {
+        "name": "frontpage_fpage_widget_areas",
         "columns": {
-            "area_page_id": {
+            "area_fpage_id": {
                 "allow_null": false,
                 "auto_increment": false,
                 "binary": false,
-                "comment": "The page ID",
+                "comment": "The fpage ID",
                 "decimals": null,
                 "default": "0",
                 "length": 20,
-                "name": "area_page_id",
+                "name": "area_fpage_id",
                 "type": "BIGINT",
                 "unsigned": true,
                 "values": [],
@@ -63,15 +63,15 @@
             }
         },
         "indexes": {
-            "area_page_area": {
+            "area_fpage_area": {
                 "type": "unique",
-                "name": "area_page_area",
+                "name": "area_fpage_area",
                 "length": [
                     null,
                     191
                 ],
                 "columns": [
-                    "area_page_id",
+                    "area_fpage_id",
                     "area_area"
                 ]
             }
@@ -927,15 +927,15 @@
                 "values": [],
                 "zerofill": false
             },
-            "database_page_id": {
+            "database_fpage_id": {
                 "allow_null": false,
                 "auto_increment": false,
                 "binary": false,
-                "comment": "Page ID this database is used on (if any)",
+                "comment": "Fpage ID this database is used on (if any)",
                 "decimals": null,
                 "default": "0",
                 "length": 10,
-                "name": "database_page_id",
+                "name": "database_fpage_id",
                 "type": "INT",
                 "unsigned": true,
                 "values": [],
@@ -1039,15 +1039,15 @@
                 "values": [],
                 "zerofill": false
             },
-            "database_use_as_page_title": {
-                "name": "database_use_as_page_title",
+            "database_use_as_fpage_title": {
+                "name": "database_use_as_fpage_title",
                 "type": "TINYINT",
                 "length": 1,
                 "decimals": null,
                 "values": null,
                 "allow_null": false,
                 "default": "1",
-                "comment": "Use database name as page title, or retain page title",
+                "comment": "Use database name as fpage title, or retain fpage title",
                 "unsigned": true,
                 "zerofill": false,
                 "auto_increment": false,
@@ -1462,7 +1462,7 @@
                 "values": [],
                 "zerofill": false
             },
-            "category_page_title": {
+            "category_fpage_title": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -1470,7 +1470,7 @@
                 "decimals": null,
                 "default": null,
                 "length": 255,
-                "name": "category_page_title",
+                "name": "category_fpage_title",
                 "type": "VARCHAR",
                 "unsigned": false,
                 "values": [],
@@ -2581,10 +2581,10 @@
         "comment": "",
         "reporting": "count"
     },
-    "frontpage_pages": {
-        "name": "frontpage_pages",
+    "frontpage_fpages": {
+        "name": "frontpage_fpages",
         "columns": {
-            "page_id": {
+            "fpage_id": {
                 "allow_null": false,
                 "auto_increment": true,
                 "binary": false,
@@ -2592,13 +2592,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 11,
-                "name": "page_id",
+                "name": "fpage_id",
                 "type": "INT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_name": {
+            "fpage_name": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2606,13 +2606,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 255,
-                "name": "page_name",
+                "name": "fpage_name",
                 "type": "VARCHAR",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_seo_name": {
+            "fpage_seo_name": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2620,13 +2620,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 255,
-                "name": "page_seo_name",
+                "name": "fpage_seo_name",
                 "type": "VARCHAR",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_content": {
+            "fpage_content": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2634,13 +2634,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 0,
-                "name": "page_content",
+                "name": "fpage_content",
                 "type": "MEDIUMTEXT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_type": {
+            "fpage_type": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2648,13 +2648,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 32,
-                "name": "page_type",
+                "name": "fpage_type",
                 "type": "VARCHAR",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_theme": {
+            "fpage_theme": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2662,13 +2662,13 @@
                 "decimals": null,
                 "default": "0",
                 "length": 8,
-                "name": "page_theme",
+                "name": "fpage_theme",
                 "type": "INT",
                 "unsigned": true,
                 "values": [],
                 "zerofill": false
             },
-            "page_meta_keywords": {
+            "fpage_meta_keywords": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2676,13 +2676,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 0,
-                "name": "page_meta_keywords",
+                "name": "fpage_meta_keywords",
                 "type": "TEXT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_meta_description": {
+            "fpage_meta_description": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2690,13 +2690,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 0,
-                "name": "page_meta_description",
+                "name": "fpage_meta_description",
                 "type": "TEXT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_template": {
+            "fpage_template": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2704,13 +2704,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 0,
-                "name": "page_template",
+                "name": "fpage_template",
                 "type": "MEDIUMTEXT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_ipb_wrapper": {
+            "fpage_ipb_wrapper": {
                 "allow_null": false,
                 "auto_increment": false,
                 "binary": false,
@@ -2718,13 +2718,13 @@
                 "decimals": null,
                 "default": "0",
                 "length": 1,
-                "name": "page_ipb_wrapper",
+                "name": "fpage_ipb_wrapper",
                 "type": "TINYINT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_title": {
+            "fpage_title": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2732,13 +2732,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 255,
-                "name": "page_title",
+                "name": "fpage_title",
                 "type": "VARCHAR",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_quicknav": {
+            "fpage_quicknav": {
                 "allow_null": false,
                 "auto_increment": false,
                 "binary": false,
@@ -2746,13 +2746,13 @@
                 "decimals": null,
                 "default": "1",
                 "length": 4,
-                "name": "page_quicknav",
+                "name": "fpage_quicknav",
                 "type": "TINYINT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_folder_id": {
+            "fpage_folder_id": {
                 "allow_null": false,
                 "auto_increment": false,
                 "binary": false,
@@ -2760,13 +2760,13 @@
                 "decimals": null,
                 "default": "0",
                 "length": 10,
-                "name": "page_folder_id",
+                "name": "fpage_folder_id",
                 "type": "INT",
                 "unsigned": true,
                 "values": [],
                 "zerofill": false
             },
-            "page_full_path": {
+            "fpage_full_path": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2774,13 +2774,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 0,
-                "name": "page_full_path",
+                "name": "fpage_full_path",
                 "type": "TEXT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_show_sidebar": {
+            "fpage_show_sidebar": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2788,13 +2788,13 @@
                 "decimals": null,
                 "default": "0",
                 "length": 1,
-                "name": "page_show_sidebar",
+                "name": "fpage_show_sidebar",
                 "type": "INT",
                 "unsigned": true,
                 "values": [],
                 "zerofill": false
             },
-            "page_default": {
+            "fpage_default": {
                 "allow_null": false,
                 "auto_increment": false,
                 "binary": false,
@@ -2802,27 +2802,27 @@
                 "decimals": null,
                 "default": "0",
                 "length": 1,
-                "name": "page_default",
+                "name": "fpage_default",
                 "type": "TINYINT",
                 "unsigned": true,
                 "values": [],
                 "zerofill": false
             },
-            "page_js_css_ids": {
+            "fpage_js_css_ids": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
-                "comment": "JSON array storing CSS and JS template IDs for inclusion on this page.",
+                "comment": "JSON array storing CSS and JS template IDs for inclusion on this fpage.",
                 "decimals": null,
                 "default": null,
                 "length": 0,
-                "name": "page_js_css_ids",
+                "name": "fpage_js_css_ids",
                 "type": "MEDIUMTEXT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_js_css_objects": {
+            "fpage_js_css_objects": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2830,13 +2830,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 0,
-                "name": "page_js_css_objects",
+                "name": "fpage_js_css_objects",
                 "type": "MEDIUMTEXT",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_wrapper_template": {
+            "fpage_wrapper_template": {
                 "allow_null": true,
                 "auto_increment": false,
                 "binary": false,
@@ -2844,13 +2844,13 @@
                 "decimals": null,
                 "default": null,
                 "length": 255,
-                "name": "page_wrapper_template",
+                "name": "fpage_wrapper_template",
                 "type": "VARCHAR",
                 "unsigned": false,
                 "values": [],
                 "zerofill": false
             },
-            "page_has_error": {
+            "fpage_has_error": {
                 "allow_null": false,
                 "auto_increment": false,
                 "binary": false,
@@ -2858,7 +2858,7 @@
                 "decimals": null,
                 "default": "0",
                 "length": 1,
-                "name": "page_has_error",
+                "name": "fpage_has_error",
                 "type": "TINYINT",
                 "unsigned": true,
                 "values": [],
@@ -2873,51 +2873,51 @@
                     null
                 ],
                 "columns": [
-                    "page_id"
+                    "fpage_id"
                 ]
             },
-            "page_seo_name": {
+            "fpage_seo_name": {
                 "type": "key",
-                "name": "page_seo_name",
+                "name": "fpage_seo_name",
                 "length": [
                     100
                 ],
                 "columns": [
-                    "page_seo_name"
+                    "fpage_seo_name"
                 ]
             },
-            "page_default": {
+            "fpage_default": {
                 "type": "key",
-                "name": "page_default",
+                "name": "fpage_default",
                 "length": [
                     null,
                     null
                 ],
                 "columns": [
-                    "page_default",
-                    "page_folder_id"
+                    "fpage_default",
+                    "fpage_folder_id"
                 ]
             },
-            "page_full_path": {
+            "fpage_full_path": {
                 "type": "key",
-                "name": "page_full_path",
+                "name": "fpage_full_path",
                 "length": [
                     191
                 ],
                 "columns": [
-                    "page_full_path"
+                    "fpage_full_path"
                 ]
             },
-            "page_folder": {
+            "fpage_folder": {
                 "type": "key",
-                "name": "page_folder",
+                "name": "fpage_folder",
                 "length": [
                     null,
                     181
                 ],
                 "columns": [
-                    "page_folder_id",
-                    "page_seo_name"
+                    "fpage_folder_id",
+                    "fpage_seo_name"
                 ]
             }
         },

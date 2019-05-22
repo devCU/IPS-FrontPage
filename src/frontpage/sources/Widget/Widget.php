@@ -3,17 +3,17 @@
  *     Support this Project... Keep it free! Become an Open Source Patron
  *                       https://www.patreon.com/devcu
  *
- * @brief       Frontpage Widgets
+ * @brief		CMS Widgets
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -40,7 +40,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 }
 
 /**
- * Frontpage Widgets
+ * CMS Widgets
  */
 class _Widget extends \IPS\Widget
 {
@@ -54,7 +54,7 @@ class _Widget extends \IPS\Widget
 	 */
 	public static function getConfiguration( $uniqueId )
 	{
-		foreach( \IPS\Db::i()->select( '*', 'frontpage_page_widget_areas' ) as $item )
+		foreach( \IPS\Db::i()->select( '*', 'frontpage_fpage_widget_areas' ) as $item )
 		{
 			$widgets = json_decode( $item['area_widgets'], TRUE );
 
@@ -78,7 +78,7 @@ class _Widget extends \IPS\Widget
 	}
 
 	/**
-	 * Delete caches. We need a different name from the parent class otherwise the Pages app hook will get stuck in infinite recursion
+	 * Delete caches. We need a different name from the parent class otherwise the Fpages app hook will get stuck in infinite recursion
 	 *
 	 * @param	String	$key				Widget key
 	 * @param	String	$app				Parent application
@@ -111,7 +111,7 @@ class _Widget extends \IPS\Widget
 			if ( \count( $blocks ) )
 			{
 				$uniqueIds = array();
-				foreach( \IPS\Db::i()->select( '*', 'frontpage_page_widget_areas' ) as $item )
+				foreach( \IPS\Db::i()->select( '*', 'frontpage_fpage_widget_areas' ) as $item )
 				{
 					$widgets = json_decode( $item['area_widgets'], TRUE );
 
@@ -190,7 +190,7 @@ class _Widget extends \IPS\Widget
 	public static function getUniqueIds()
 	{
 		$uniqueIds = parent::getUniqueIds();
-		foreach ( \IPS\Db::i()->select( '*', 'frontpage_page_widget_areas' ) as $row )
+		foreach ( \IPS\Db::i()->select( '*', 'frontpage_fpage_widget_areas' ) as $row )
 		{
 			$data = json_decode( $row['area_widgets'], TRUE );
 			

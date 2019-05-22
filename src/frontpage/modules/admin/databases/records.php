@@ -277,7 +277,7 @@ class _records extends \IPS\Dispatcher\Controller
 			\IPS\Output::i()->error( 'no_module_permission', '2T253/1', 403, '' );
 		}	
 
-		/* Clear guest page caches */
+		/* Clear guest content caches */
 		\IPS\Data\Cache::i()->clearAll();
 
 		\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=records&database_id=' . \IPS\Request::i()->database_id ), 'record_deleted' );
@@ -560,11 +560,11 @@ class _records extends \IPS\Dispatcher\Controller
 				}
 				catch( \LogicException $ex )
 				{
-					/* If the database isn't attached to a page, a call to url() when logging an author change throws this */
+					/* If the database isn't attached to a content, a call to url() when logging an author change throws this */
 				}
 			}
 
-			/* Clear guest page caches */
+			/* Clear guest content caches */
 			\IPS\Data\Cache::i()->clearAll();
 
 			\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=records&database_id=' . \IPS\Request::i()->database_id ), 'saved' );

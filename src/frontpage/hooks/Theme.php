@@ -16,7 +16,7 @@ class frontpage_hook_Theme extends _HOOK_CLASS_
 	 */
 	public static function themeSettingsHaveChanged( $setId )
 	{
-		\IPS\frontpage\Pages\Page::deleteCachedIncludes();
+		\IPS\frontpage\Fpages\Fpage::deleteCachedIncludes();
 		
 		parent::themeSettingsHaveChanged( $setId );
 	}

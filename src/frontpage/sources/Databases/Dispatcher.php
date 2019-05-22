@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -129,9 +129,9 @@ class _Dispatcher extends \IPS\Dispatcher
 	 */
 	public function init()
 	{
-		if ( ( \IPS\frontpage\Pages\Page::$currentPage AND ! ( \IPS\Application::load('frontpage')->default AND ! \IPS\frontpage\Pages\Page::$currentPage->folder_id AND \IPS\frontpage\Pages\Page::$currentPage->default ) ) )
+		if ( ( \IPS\frontpage\Fpages\Fpage::$currentFpage AND ! ( \IPS\Application::load('frontpage')->default AND ! \IPS\frontpage\Fpages\Fpage::$currentFpage->folder_id AND \IPS\frontpage\Fpages\Fpage::$currentFpage->default ) ) )
 		{
-			\IPS\Output::i()->breadcrumb['module'] = array( \IPS\frontpage\Pages\Page::$currentPage->url(), \IPS\frontpage\Pages\Page::$currentPage->_title );
+			\IPS\Output::i()->breadcrumb['module'] = array( \IPS\frontpage\Fpages\Fpage::$currentFpage->url(), \IPS\frontpage\Fpages\Fpage::$currentFpage->_title );
 		}
 	}
 
@@ -143,20 +143,20 @@ class _Dispatcher extends \IPS\Dispatcher
 	public function run()
 	{
 		/* Coming from a widget? */
-		if ( isset( \IPS\Request::i()->pageID ) and isset( \IPS\Request::i()->blockID ) )
+		if ( isset( \IPS\Request::i()->fpageID ) and isset( \IPS\Request::i()->blockID ) )
 		{
-			if ( \IPS\frontpage\Pages\Page::$currentPage === NULL )
+			if ( \IPS\frontpage\Fpages\Fpage::$currentFpage === NULL )
 			{
-				/* make sure this is a valid widgetized page to stop tampering */
+				/* make sure this is a valid widgetized fpage to stop tampering */
 				try
 				{
-					foreach ( \IPS\Db::i()->select( '*', 'frontpage_page_widget_areas', array( 'area_page_id=?', \IPS\Request::i()->pageID ) ) as $item )
+					foreach ( \IPS\Db::i()->select( '*', 'frontpage_fpage_widget_areas', array( 'area_fpage_id=?', \IPS\Request::i()->fpageID ) ) as $item )
 					{
 						foreach( json_decode( $item['area_widgets'], TRUE ) as $block )
 						{
 							if ( $block['key'] === 'Database' and isset( $block['configuration']['database'] ) and \intval( $block['configuration']['database'] ) === $this->databaseId )
 							{
-								\IPS\frontpage\Pages\Page::$currentPage = \IPS\frontpage\Pages\Page::load( \IPS\Request::i()->pageID );
+								\IPS\frontpage\Fpages\Fpage::$currentFpage = \IPS\frontpage\Fpages\Fpage::load( \IPS\Request::i()->fpageID );
 							}
 						}
 					}
@@ -165,16 +165,16 @@ class _Dispatcher extends \IPS\Dispatcher
 			}
 
 			/* Try again */
-			if ( \IPS\frontpage\Pages\Page::$currentPage === NULL )
+			if ( \IPS\frontpage\Fpages\Fpage::$currentFpage === NULL )
 			{
-				\IPS\Output::i()->error( 'page_doesnt_exist', '2T251/1', 404 );
+				\IPS\Output::i()->error( 'fpage_doesnt_exist', '2T251/1', 404 );
 			}
 
 			/* Unset do query param otherwise it confuses the controller->execute(); */
 			\IPS\Request::i()->do = NULL;
 		}
 
-		$url = 'app=frontpage&module=pages&controller=page&path=' . \IPS\frontpage\Pages\Page::$currentPage->full_path;
+		$url = 'app=frontpage&module=fpages&controller=fpage&path=' . \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path;
 
 		try
 		{
@@ -182,35 +182,35 @@ class _Dispatcher extends \IPS\Dispatcher
 		}
 		catch( \OutOfRangeException $ex )
 		{
-			\IPS\Output::i()->error( 'page_doesnt_exist', '2T251/2', 404 );
+			\IPS\Output::i()->error( 'fpage_doesnt_exist', '2T251/2', 404 );
 		}
 
-		$path = trim(  preg_replace( '#' . \IPS\frontpage\Pages\Page::$currentPage->full_path . '#', '', \IPS\Request::i()->path, 1 ), '/' );
+		$path = trim(  preg_replace( '#' . \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path . '#', '', \IPS\Request::i()->path, 1 ), '/' );
 
-		/* If we visited the default page in a folder, the full_path will be like folder/page but the request path will just be folder */
-		if( \IPS\Request::i()->path . '/' . \IPS\frontpage\Pages\Page::$currentPage->seo_name == \IPS\frontpage\Pages\Page::$currentPage->full_path )
+		/* If we visited the default fpage in a folder, the full_path will be like folder/fpage but the request path will just be folder */
+		if( \IPS\Request::i()->path . '/' . \IPS\frontpage\Fpages\Fpage::$currentFpage->seo_name == \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path )
 		{
 			$path = '';
 		}
 	
 		/* Have a bash at pagination as it's not like we've much else to do */
-		$stripped = \IPS\Http\Url\Friendly::stripPageComponent( '/' . trim( $path, '/' ) . '/' );
+		$stripped = \IPS\Http\Url\Friendly::stripFpageComponent( '/' . trim( $path, '/' ) . '/' );
 
 		if ( trim( $path, '/' ) != trim( $stripped, '/' ) )
 		{
 			if ( $stripped !== '/' )
 			{
-				$pageStuff = str_replace( ltrim( $stripped, '/' ), '', $path );
+				$fpageStuff = str_replace( ltrim( $stripped, '/' ), '', $path );
 			}
 			else
 			{
-				$pageStuff = $path;
+				$fpageStuff = $path;
 			}
 			
-			$bomb = explode( '/', $pageStuff );
+			$bomb = explode( '/', $fpageStuff );
 			if ( ! empty( $bomb[1] ) )
 			{
-				\IPS\Request::i()->page = $bomb[1];
+				\IPS\Request::i()->fpage = $bomb[1];
 				$path = trim( $stripped, '/' );
 			}
 		}
@@ -283,7 +283,7 @@ class _Dispatcher extends \IPS\Dispatcher
 						}
 						catch ( \OutOfRangeException $ex )
 						{
-							\IPS\Output::i()->error( 'page_doesnt_exist', '2T251/4', 404 );
+							\IPS\Output::i()->error( 'fpage_doesnt_exist', '2T251/4', 404 );
 						}
 					}
 				}
@@ -324,7 +324,7 @@ class _Dispatcher extends \IPS\Dispatcher
 							\IPS\Output::i()->redirect( $category->url() );
 						}
 						
-						\IPS\Output::i()->error( 'page_doesnt_exist', '2T251/5', 404 );
+						\IPS\Output::i()->error( 'fpage_doesnt_exist', '2T251/5', 404 );
 					}
 				}
 				
@@ -343,18 +343,18 @@ class _Dispatcher extends \IPS\Dispatcher
 			}
 		}
 		
-		$this->url = \IPS\Http\Url::internal( $url, 'front', 'content_page_path' );
+		$this->url = \IPS\Http\Url::internal( $url, 'front', 'content_fpage_path' );
 		$className = '\\IPS\\frontpage\\modules\\front\\database\\' . $this->module;
 
 		/* Init class */
 		if( !class_exists( $className ) )
 		{
-			\IPS\Output::i()->error( 'page_doesnt_exist', '2T251/6', 404 );
+			\IPS\Output::i()->error( 'fpage_doesnt_exist', '2T251/6', 404 );
 		}
 		$controller = new $className;
 		if( !( $controller instanceof \IPS\Dispatcher\Controller ) )
 		{
-			\IPS\Output::i()->error( 'page_not_found', '3T251/7', 500, '' );
+			\IPS\Output::i()->error( 'fpage_not_found', '3T251/7', 500, '' );
 		}
 
 		\IPS\Dispatcher::i()->dispatcherController	= $controller;

@@ -18,14 +18,14 @@ class frontpage_hook_InternalUrl extends _HOOK_CLASS_
 		/* Check what the normal handling thinks... */
 		$return = parent::correctFriendlyUrl();
 		
-		/* If it it thinks it belongs to "pages", we might be able to be more accurate */
-		if ( $return instanceof \IPS\Http\Url\Friendly and $return->seoTemplate === 'content_page_path' and isset( $this->queryString['path'] ) )
+		/* If it it thinks it belongs to "fpages", we might be able to be more accurate */
+		if ( $return instanceof \IPS\Http\Url\Friendly and $return->seoTemplate === 'content_fpage_path' and isset( $this->queryString['path'] ) )
 		{
-			/* Try to find a page */
+			/* Try to find a fpage */
 			try
 			{
 				/* Create it */
-				$correctUrl = \IPS\frontpage\Pages\Router::loadFromUrl( $this )->url();			
+				$correctUrl = \IPS\frontpage\Fpages\Router::loadFromUrl( $this )->url();			
 				
 				/* Set extra stuff in our query string */
 				$paramsToSet = array();

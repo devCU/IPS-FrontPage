@@ -287,7 +287,7 @@ class _topic extends \IPS\Dispatcher\Controller
 
 				try
 				{
-					/* If the database is on a page, go to the record */
+					/* If the database is on a content, go to the record */
 					\IPS\Output::i()->redirect( $record->url() );
 				}
 				catch( \LogicException $e )
@@ -304,7 +304,7 @@ class _topic extends \IPS\Dispatcher\Controller
 			{
 				try
 				{
-					/* If the database is on a page, go to the record */
+					/* If the database is on a content, go to the record */
 					\IPS\Output::i()->redirect( $record->url() );
 				}
 				catch( \LogicException $e )
@@ -344,7 +344,7 @@ class _topic extends \IPS\Dispatcher\Controller
 		\IPS\Output::i()->breadcrumb[] = array( $this->topic->url(), $this->topic->mapped( 'title' ) );
 		\IPS\Output::i()->breadcrumb[] = array( NULL, \IPS\Member::loggedIn()->language()->addToStack( 'copy_topic_to_database' ) );
 		\IPS\Output::i()->title = \IPS\Member::loggedIn()->language()->addToStack( 'copy_topic_to_database' );
-		\IPS\Output::i()->output = $form->customTemplate( array( \IPS\frontpage\Theme::i()->getTemplate( $database->template_form, 'frontpage', 'database' ), 'recordForm' ), NULL, $category, $database, \IPS\frontpage\Pages\Page::load( $database->page_id ), \IPS\Member::loggedIn()->language()->addToStack( 'copy_topic_to_database' ), $hasModOptions );
+		\IPS\Output::i()->output = $form->customTemplate( array( \IPS\frontpage\Theme::i()->getTemplate( $database->template_form, 'frontpage', 'database' ), 'recordForm' ), NULL, $category, $database, \IPS\frontpage\Fpages\Fpage::load( $database->content_id ), \IPS\Member::loggedIn()->language()->addToStack( 'copy_topic_to_database' ), $hasModOptions );
 	}
 	
 	/**

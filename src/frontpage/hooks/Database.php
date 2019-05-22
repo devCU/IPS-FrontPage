@@ -19,7 +19,7 @@ class frontpage_hook_Database extends _HOOK_CLASS_
 	{
 		$this->initLoad[] = 'frontpage_menu';
 		$this->initLoad[] = 'frontpage_databases';
-		$this->initLoad[] = 'pages_page_urls';
+		$this->initLoad[] = 'fpages_fpage_urls';
 
 		/* Hand over to normal method */
 		parent::__construct();

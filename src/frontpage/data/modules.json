@@ -4,12 +4,16 @@
             "default_controller": "overview",
             "protected": 0
         },
+        "fpages": {
+            "default_controller": "fpages",
+            "protected": 0
+        },
         "themes": {
             "default_controller": "configure",
             "protected": 0
         },
-        "pages": {
-            "default_controller": "pages",
+        "templates": {
+            "default_controller": "templates",
             "protected": 0
         },
         "databases": {
@@ -18,8 +22,8 @@
         }
     },
     "front": {
-        "pages": {
-            "default_controller": "main",
+        "fpages": {
+            "default_controller": "fpage",
             "protected": 0
         },
         "database": {

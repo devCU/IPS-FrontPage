@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -73,7 +73,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	/**
 	 * @brief	[ActiveRecord] Database ID Fields
 	 */
-	protected static $databaseIdFields = array( 'database_key', 'database_page_id' );
+	protected static $databaseIdFields = array( 'database_key', 'database_fpage_id' );
 	
 	/**
 	 * @brief	[ActiveRecord] Multiton Map
@@ -180,9 +180,9 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	);
 	
 	/**
-	 * @brief	Page title
+	 * @brief	Fpage title
 	 */
-	protected static $pageTitle = NULL;
+	protected static $fpageTitle = NULL;
 	
 	/**
 	 * Return all databases
@@ -235,7 +235,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	}
 	
 	/**
-	 * Can we promote stuff to Pages?
+	 * Can we promote stuff to Fpages?
 	 *
 	 * @return	boolean
 	 */
@@ -711,29 +711,29 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	}
 	
 	/**
-	 * Get the title of the page when using a database
+	 * Get the title of the fpage when using a database
 	 *
 	 * @return string
 	 */
-	public function pageTitle()
+	public function fpageTitle()
 	{
-		if ( static::$pageTitle === NULL )
+		if ( static::$fpageTitle === NULL )
 		{
-			if ( $this->use_as_page_title )
+			if ( $this->use_as_fpage_title )
 			{ 
-				static::$pageTitle = $this->_title;
+				static::$fpageTitle = $this->_title;
 			}
 			else
 			{
 				try
 				{
-					static::$pageTitle = \IPS\frontpage\Pages\Page::load( $this->page_id )->getHtmlTitle();
+					static::$fpageTitle = \IPS\frontpage\Fpages\Fpage::load( $this->fpage_id )->getHtmlTitle();
 				}
 				catch( \Exception $e ) { }
 			}
 		}
 		
-		return static::$pageTitle;
+		return static::$fpageTitle;
 	}
 	
 	/**
@@ -747,12 +747,12 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	public function can( $permission, $member=NULL, $considerPostBeforeRegistering = TRUE )
 	{
-		/* If we're looking from the front, make sure the database page also passes */
-		if ( $permission === 'view' and \IPS\Dispatcher::hasInstance() and \IPS\Dispatcher::i()->controllerLocation === 'front' and $this->page_id )
+		/* If we're looking from the front, make sure the database fpage also passes */
+		if ( $permission === 'view' and \IPS\Dispatcher::hasInstance() and \IPS\Dispatcher::i()->controllerLocation === 'front' and $this->fpage_id )
 		{
 			try
 			{
-				return parent::can( 'view', $member, $considerPostBeforeRegistering ) AND \IPS\frontpage\Pages\Page::load( $this->page_id )->can( 'view', $member, $considerPostBeforeRegistering );
+				return parent::can( 'view', $member, $considerPostBeforeRegistering ) AND \IPS\frontpage\Fpages\Fpage::load( $this->fpage_id )->can( 'view', $member, $considerPostBeforeRegistering );
 			}
 			catch( \OutOfRangeException $ex )
 			{
@@ -821,7 +821,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 		}
 		else
 		{
-			/* If the Pages app is disabled, just load a generic phrase */
+			/* If the Fpages app is disabled, just load a generic phrase */
 			$key = "content_database_noun_" . ( $number > 1 ? "p" : "s" ) . ( $upper ? "u" : "l" );
 			return \IPS\Member::loggedIn()->language()->addToStack( $key ); 
 		}
@@ -964,17 +964,17 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	{
 		$databaseWidgets = array( 'Database', 'LatestArticles' );
 
-		foreach ( \IPS\Db::i()->select( '*', 'frontpage_page_widget_areas' ) as $item )
+		foreach ( \IPS\Db::i()->select( '*', 'frontpage_fpage_widget_areas' ) as $item )
 		{
-			$pageBlocks   = json_decode( $item['area_widgets'], TRUE );
+			$fpageBlocks   = json_decode( $item['area_widgets'], TRUE );
 			$resaveBlock  = NULL;
-			foreach( $pageBlocks as $id => $pageBlock )
+			foreach( $fpageBlocks as $id => $fpageBlock )
 			{
-				if( $pageBlock['app'] == 'frontpage' AND \in_array( $pageBlock['key'], $databaseWidgets ) AND ! empty( $pageBlock['configuration']['database'] ) )
+				if( $fpageBlock['app'] == 'frontpage' AND \in_array( $fpageBlock['key'], $databaseWidgets ) AND ! empty( $fpageBlock['configuration']['database'] ) )
 				{
-					if ( $pageBlock['configuration']['database'] == $this->id )
+					if ( $fpageBlock['configuration']['database'] == $this->id )
 					{
-						$resaveBlock = $pageBlocks;
+						$resaveBlock = $fpageBlocks;
 						unset( $resaveBlock[ $id ] );
 					}
 				}
@@ -982,7 +982,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 			if ( $resaveBlock !== NULL )
 			{
-				\IPS\Db::i()->update( 'frontpage_page_widget_areas', array( 'area_widgets' => json_encode( $resaveBlock ) ), array( 'area_page_id=? and area_area=?', $this->id, $item['area_area'] ) );
+				\IPS\Db::i()->update( 'frontpage_fpage_widget_areas', array( 'area_widgets' => json_encode( $resaveBlock ) ), array( 'area_fpage_id=? and area_area=?', $this->id, $item['area_area'] ) );
 			}
 		}
 	}
