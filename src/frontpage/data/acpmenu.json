@@ -39,10 +39,10 @@
             "restriction": "settings_manage"
         }
     },
-    "pages": {
-        "pages": {
+    "fpages": {
+        "fpages": {
             "tab": "frontpage",
-            "controller": "pages",
+            "controller": "fpages",
             "do": "",
             "restriction": "settings_manage"
         },
