@@ -242,9 +242,9 @@ class _fpages extends \IPS\Node\Controller
 			}
 		}, NULL, NULL, 'frontpage_root_fpage_url' ) );
 
-		$form->add( new \IPS\Helpers\Form\Node( 'frontpage_error_page', \IPS\Settings::i()->frontpage_error_page ? \IPS\Settings::i()->frontpage_error_page : 0, FALSE,array(
+		$form->add( new \IPS\Helpers\Form\Node( 'frontpage_error_fpage', \IPS\Settings::i()->frontpage_error_fpage ? \IPS\Settings::i()->frontpage_error_fpage : 0, FALSE,array(
 			'class'           => '\IPS\frontpage\Fpages\Fpage',
-			'zeroVal'         => 'frontpage_error_page_none',
+			'zeroVal'         => 'frontpage_error_fpage_none',
 			'subnodes'		  => true,
 			'permissionCheck' => function( $node )
 			{
