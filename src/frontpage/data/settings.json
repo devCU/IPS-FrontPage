@@ -8,7 +8,55 @@
         "default": "0"
     },
     {
+        "key": "frontpage_error_page",
+        "default": "0"
+    },
+    {
         "key": "frontpage_groups",
         "default": ""
+    },
+    {
+        "key": "frontpage_promote_cat",
+        "default": "0"
+    },
+    {
+        "key": "frontpage_promote_enabled",
+        "default": "0"
+    },
+    {
+        "key": "frontpage_promote_groups",
+        "default": "*"
+    },
+    {
+        "key": "frontpage_root_content_url",
+        "default": ""
+    },
+    {
+        "key": "frontpage_root_path",
+        "default": ""
+    },
+    {
+        "key": "frontpage_use_different_gateway",
+        "default": "0"
+    },
+    {
+        "key": "fpage_extension",
+        "default": ".html"
+    },
+    {
+        "key": "sitemap_fpages_count",
+        "default": "-1"
+    },
+    {
+        "key": "sitemap_fpages_priority",
+        "default": "1"
+    },
+    {
+        "key": "sitemap_databases_count",
+        "default": "-1"
+    },
+    {
+        "key": "sitemap_databases_priority",
+        "default": "1"
     }
 ]
