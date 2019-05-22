@@ -3,17 +3,17 @@
  *     Support this Project... Keep it free! Become an Open Source Patron
  *                       https://www.patreon.com/devcu
  *
- * @brief       FrontPage Block Model
+ * @brief		Block Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -137,7 +137,7 @@ class _Block extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	protected static $restrictions = array(
 			'app'		=> 'frontpage',
-			'module'	=> 'pages',
+			'module'	=> 'fpages',
 			'prefix' 	=> 'block_'
 	);
 
@@ -363,8 +363,8 @@ EOF;
 			}
 		}
 		
-		/* We can also use blocks in per-page CSS */
-		\IPS\frontpage\Pages\Page::deleteCompiledIncludes();
+		/* We can also use blocks in per-fpage CSS */
+		\IPS\frontpage\Fpages\Fpage::deleteCompiledIncludes();
 	}
 
 	/**
@@ -483,7 +483,7 @@ EOF;
         $buttons['details']	= array(
             'icon'	=> 'search',
             'title'	=> 'block_embed_options',
-            'link'	=> \IPS\Http\Url::internal( "app=frontpage&module=themes&controller=blocks&do=embedOptions&id={$this->_id}" ),
+            'link'	=> \IPS\Http\Url::internal( "app=frontpage&module=templates&controller=blocks&do=embedOptions&id={$this->_id}" ),
             'data'	=> array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('block_embed_options') )
         );
 
