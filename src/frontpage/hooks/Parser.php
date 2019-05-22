@@ -18,13 +18,13 @@ class frontpage_hook_Parser extends _HOOK_CLASS_
 		$return = parent::allowedIFrameBases();
 		
 		/* If the Frontpage root URL is not inside the IPS4 directory, then embeds will fails as the src will not be allowed */
-		if ( \IPS\Settings::i()->frontpage_root_page_url )
+		if ( \IPS\Settings::i()->frontpage_root_fpage_url )
 		{
-			$pages = iterator_to_array( \IPS\Db::i()->select( 'database_page_id', 'frontpage_databases', array( 'database_page_id > 0' ) ) );
+			$fpages = iterator_to_array( \IPS\Db::i()->select( 'database_fpage_id', 'frontpage_databases', array( 'database_fpage_id > 0' ) ) );
 
-			foreach ( new \IPS\Patterns\ActiveRecordIterator( \IPS\Db::i()->select( '*', 'frontpage_pages', array( \IPS\Db::i()->in( 'page_id', $pages ) ) ), 'IPS\frontpage\Pages\Page' ) as $page )
+			foreach ( new \IPS\Patterns\ActiveRecordIterator( \IPS\Db::i()->select( '*', 'frontpage_fpages', array( \IPS\Db::i()->in( 'fpage_id', $fpages ) ) ), 'IPS\frontpage\Fpages\Fpage' ) as $fpage )
 			{
-				$return[] = str_replace( array( 'http://', 'https://' ), '', $page->url() );
+				$return[] = str_replace( array( 'http://', 'https://' ), '', $fpage->url() );
 			}
 		}
 
