@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -1081,7 +1081,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 	 */
 	public function fieldTemplateName( $type )
 	{
-		return 'pages_field_custom_html_' . $type . '_' . $this->id;
+		return 'fpages_field_custom_html_' . $type . '_' . $this->id;
 	}
 
 	/**
@@ -1810,7 +1810,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 			$disabled  = array();
 			foreach( \IPS\frontpage\Databases::databases() as $db )
 			{
-				if ( $db->page_id )
+				if ( $db->fpage_id )
 				{
 					$databases[ $db->id ] = $db->_title;
 				}
