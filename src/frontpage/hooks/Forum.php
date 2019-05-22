@@ -6,7 +6,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 	exit;
 }
 
-class frontpage_hook_Forum extends _HOOK_CLASS_
+class cms_hook_Forum extends _HOOK_CLASS_
 {
 
 
@@ -21,7 +21,7 @@ class frontpage_hook_Forum extends _HOOK_CLASS_
 	{
 		$buttons = parent::getButtons( $url, $subnode );
 
-		if ( isset( $buttons['delete'] ) AND $this->isUsedByFrontpage() )
+		if ( isset( $buttons['delete'] ) AND $this->isUsedByCms() )
 		{
 			unset( $buttons['delete']['data'] );
 		}
@@ -30,13 +30,13 @@ class frontpage_hook_Forum extends _HOOK_CLASS_
 	}
 
 	/**
-	 * Is this Forum used by any frontpage category for record/comment topics?
+	 * Is this Forum used by any cms category for record/comment topics?
 	 *
-	@return bool|\IPS\frontpage\Databases
+	@return bool|\IPS\cms\Databases
 	 */
-	public function isUsedByFrontpage()
+	public function isUsedByCms()
 	{
-		foreach ( \IPS\frontpage\Databases::databases() as $database )
+		foreach ( \IPS\cms\Databases::databases() as $database )
 		{
 			if ( $database->forum_record and $database->forum_forum and $database->forum_forum == $this->id )
 			{

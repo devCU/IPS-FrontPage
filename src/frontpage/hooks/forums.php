@@ -6,7 +6,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 	exit;
 }
 
-class frontpage_hook_forums extends _HOOK_CLASS_
+class cms_hook_forums extends _HOOK_CLASS_
 {
 
 
@@ -34,11 +34,11 @@ class frontpage_hook_forums extends _HOOK_CLASS_
 		}
 
 		/* Is any database synced with this forum? */
-		if ( $db = $node->isUsedByFrontpage() )
+		if ( $db = $node->isUsedByCms() )
 		{
-			\IPS\Member::loggedIn()->language()->words['frontpage_forum_used'] = sprintf( \IPS\Member::loggedIn()->language()->get('frontpage_forum_used'), $db->recordWord( 1 ) );
+			\IPS\Member::loggedIn()->language()->words['cms_forum_used'] = sprintf( \IPS\Member::loggedIn()->language()->get('cms_forum_used'), $db->recordWord( 1 ) );
 
-			\IPS\Output::i()->error( 'frontpage_forum_used', '1T371/1', 403, '' );
+			\IPS\Output::i()->error( 'cms_forum_used', '1T371/1', 403, '' );
 		}
 
 		return parent::delete();
