@@ -3,17 +3,17 @@
  *     Support this Project... Keep it free! Become an Open Source Patron
  *                       https://www.patreon.com/devcu
  *
- * @brief       FrontPage Categories Model
+ * @brief		Categories Selector Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -169,15 +169,15 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	protected function get__title()
 	{
-		/* If the DB is in a page, and we're not using categories, then return the page title, not the category title for continuity */
+		/* If the DB is in a fpage, and we're not using categories, then return the fpage title, not the category title for continuity */
 		if ( ! \IPS\frontpage\Databases::load( $this->database_id )->use_categories )
 		{
 			if ( ! $this->_catTitle )
 			{
 				try
 				{
-					$page = \IPS\frontpage\Pages\Page::loadByDatabaseId( $this->database_id );
-					$this->_catTitle = $page->_title;
+					$fpage = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $this->database_id );
+					$this->_catTitle = $fpage->_title;
 				}
 				catch( \OutOfRangeException $e )
 				{
