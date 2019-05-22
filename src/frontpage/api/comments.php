@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     20 MAY 2019
+ * @Updated     21 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -29,6 +29,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see http://www.gnu.org/licenses/
  */
+
 namespace IPS\frontpage\api;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
