@@ -3,17 +3,17 @@
  *     Support this Project... Keep it free! Become an Open Source Patron
  *                       https://www.patreon.com/devcu
  *
- * @brief       FrontPage Categories Model
+ * @brief		Categories Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.0 RC
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     04 MAY 2019
+ * @Updated     22 MAY 2019
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -175,7 +175,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	public static $permissionLangPrefix = 'perm_content_category_';
 	
 	/**
-	 * @brief	[Page] Loaded pages from paths
+	 * @brief	[Fpage] Loaded fpages from paths
 	 */
 	protected static $loadedCatsFromPath = array();
 
@@ -532,7 +532,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 		$form->addTab( 'content_content_form_header__meta' );
 		
-		$form->add( new \IPS\Helpers\Form\Text( 'category_page_title',  $this->page_title, FALSE, array(), NULL, NULL, NULL ) );
+		$form->add( new \IPS\Helpers\Form\Text( 'category_fpage_title',  $this->fpage_title, FALSE, array(), NULL, NULL, NULL ) );
 		$form->add( new \IPS\Helpers\Form\TextArea( 'category_meta_keywords', $this->meta_keywords, FALSE, array(), NULL, NULL, NULL, 'category_meta_keywords' ) );
 		$form->add( new \IPS\Helpers\Form\TextArea( 'category_meta_description', $this->meta_description, FALSE, array(), NULL, NULL, NULL, 'category_meta_description' ) );
 
@@ -701,7 +701,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 		{
 			$values['furl_name'] = \IPS\Http\Url\Friendly::seoTitle( $values['category_furl_name'] );
 			
-			/* We cannot have numeric furl_names 'cos you could do page/2/ and it will confuse SEO pagination. This is not possible with other areas as it is always /id-furl/ */
+			/* We cannot have numeric furl_names 'cos you could do fpage/2/ and it will confuse SEO pagination. This is not possible with other areas as it is always /id-furl/ */
 			if ( \is_numeric( $values['furl_name'] ) )
 			{
 				$values['furl_name'] = 'n' . $values['furl_name'];
@@ -995,7 +995,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 				}
 			}
 
-			$savePerms['perm_2'] = $this->readPermissionMergeWithPage( $savePerms );
+			$savePerms['perm_2'] = $this->readPermissionMergeWithFpage( $savePerms );
 
 			$this->_permissions = $savePerms;
 			$this->_permsMashed = TRUE;
@@ -1005,36 +1005,36 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	}
 
 	/**
-	 * Return least favourable permissions based on category and page
+	 * Return least favourable permissions based on category and fpage
 	 *
 	 * @param   array   $perms      Array of perms
 	 *
 	 * @return string
 	 */
-	public function readPermissionMergeWithPage( $perms=NULL )
+	public function readPermissionMergeWithFpage( $perms=NULL )
 	{
 		$database = \IPS\frontpage\Databases::load( $this->database_id );
 
-		/* Now check against the page */
-		if ( $database->page_id )
+		/* Now check against the fpage */
+		if ( $database->fpage_id )
 		{
 			try
 			{
-				$page      = \IPS\frontpage\Pages\Page::load( $database->page_id );
-				$pagePerms = $page->permissions();
+				$fpage      = \IPS\frontpage\Fpages\Fpage::load( $database->fpage_id );
+				$fpagePerms = $fpage->permissions();
 				$catPerms  = ( $perms ) ? $perms : $this->permissions();
 
-				if ( $pagePerms['perm_view'] === '*' )
+				if ( $fpagePerms['perm_view'] === '*' )
 				{
 					return $catPerms['perm_2'];
 				}
 				else if ( $catPerms['perm_2'] === '*' )
 				{
-					return $pagePerms['perm_view'];
+					return $fpagePerms['perm_view'];
 				}
 				else
 				{
-					return implode( ',', array_intersect( explode( ',', $pagePerms['perm_view'] ), explode( ',', $catPerms['perm_2'] ) ) );
+					return implode( ',', array_intersect( explode( ',', $fpagePerms['perm_view'] ), explode( ',', $catPerms['perm_2'] ) ) );
 				}
 			}
 			catch ( \OutOfRangeException $ex )
@@ -1055,15 +1055,15 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	{
 		if( $this->_url === NULL )
 		{
-			if ( \IPS\frontpage\Pages\Page::$currentPage and \IPS\frontpage\Databases::load( $this->database_id )->page_id == \IPS\frontpage\Pages\Page::$currentPage->id )
+			if ( \IPS\frontpage\Fpages\Fpage::$currentFpage and \IPS\frontpage\Databases::load( $this->database_id )->fpage_id == \IPS\frontpage\Fpages\Fpage::$currentFpage->id )
 			{
-				$pagePath = \IPS\frontpage\Pages\Page::$currentPage->full_path;
+				$fpagePath = \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path;
 			}
 			else
 			{
 				try
 				{
-					$pagePath = \IPS\frontpage\Pages\Page::loadByDatabaseId( $this->database_id )->full_path;
+					$fpagePath = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $this->database_id )->full_path;
 				}
 				catch( \OutOfRangeException $e )
 				{
@@ -1075,11 +1075,11 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 			if ( \IPS\frontpage\Databases::load( $this->database_id )->use_categories )
 			{
-				$this->_url = \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . $pagePath . '/' . $catPath, 'front', 'content_page_path', $this->furl_name );
+				$this->_url = \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $fpagePath . '/' . $catPath, 'front', 'content_fpage_path', $this->furl_name );
 			}
 			else
 			{
-				$this->_url = \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . $pagePath, 'front', 'content_page_path', $this->furl_name );
+				$this->_url = \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $fpagePath, 'front', 'content_fpage_path', $this->furl_name );
 			}
 		}
 
@@ -1101,18 +1101,18 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 		{
 			$recordClass = $recordClass::$itemClass;
 		}
-		if ( $recordClass::$pagePath === NULL )
+		if ( $recordClass::$fpagePath === NULL )
 		{
-			$recordClass::$pagePath = \IPS\Db::i()->select( array( 'page_full_path' ), 'frontpage_pages', array( 'page_id=?', $recordClass::database()->page_id ) )->first();
+			$recordClass::$fpagePath = \IPS\Db::i()->select( array( 'fpage_full_path' ), 'frontpage_fpages', array( 'fpage_id=?', $recordClass::database()->fpage_id ) )->first();
 		}
 				
 		if ( $recordClass::database()->use_categories )
 		{
-			return \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . $recordClass::$pagePath . '/' . $itemData['extra'], 'front', 'content_page_path', $itemData['extra'] );
+			return \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $recordClass::$fpagePath . '/' . $itemData['extra'], 'front', 'content_fpage_path', $itemData['extra'] );
 		}
 		else
 		{
-			return \IPS\Http\Url::internal( "app=frontpage&module=pages&controller=page&path=" . $recordClass::$pagePath, 'front', 'content_page_path', '' );
+			return \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $recordClass::$fpagePath, 'front', 'content_fpage_path', '' );
 		}
 	}
 	
@@ -1143,18 +1143,18 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	}
 	
 	/**
-	 * Get Page Title for use in `<title>` tag
+	 * Get Fpage Title for use in `<title>` tag
 	 *
 	 * @return	string
 	 */
-	public function pageTitle()
+	public function fpageTitle()
 	{
-		if ( $this->page_title )
+		if ( $this->fpage_title )
 		{
-			return $this->page_title;
+			return $this->fpage_title;
 		}
 		
-		return $this->database()->pageTitle();
+		return $this->database()->fpageTitle();
 	}
 
 	/**
@@ -1164,15 +1164,15 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	protected function get__title()
 	{
-		/* If the DB is in a page, and we're not using categories, then return the page title, not the category title for continuity */
+		/* If the DB is in a fpage, and we're not using categories, then return the fpage title, not the category title for continuity */
 		if ( ! \IPS\frontpage\Databases::load( $this->database_id )->use_categories )
 		{
 			if ( ! $this->_catTitle )
 			{
 				try
 				{
-					$page = \IPS\frontpage\Pages\Page::loadByDatabaseId( $this->database_id );
-					$this->_catTitle = $page->_title;
+					$fpage = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $this->database_id );
+					$this->_catTitle = $fpage->_title;
 				}
 				catch( \OutOfRangeException $e )
 				{
@@ -1195,15 +1195,15 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	protected function get__titleLanguageKey()
 	{
-		/* If the DB is in a page, and we're not using categories, then return the page title, not the category title for continuity */
+		/* If the DB is in a fpage, and we're not using categories, then return the fpage title, not the category title for continuity */
 		if ( ! \IPS\frontpage\Databases::load( $this->database_id )->use_categories )
 		{
 			if ( ! $this->_catTitleLangKey )
 			{
 				try
 				{
-					$page = \IPS\frontpage\Pages\Page::loadByDatabaseId( $this->database_id );
-					$this->_catTitleLangKey = $page->_titleLanguageKey;
+					$fpage = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $this->database_id );
+					$this->_catTitleLangKey = $fpage->_titleLanguageKey;
 				}
 				catch( \OutOfRangeException $e )
 				{
@@ -1803,7 +1803,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	public function metaTitle()
 	{
-		return $this->page_title ?: static::database()->metaTitle();
+		return $this->fpage_title ?: static::database()->metaTitle();
 	}
 
 	/**
