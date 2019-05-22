@@ -40,7 +40,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 }
 
 /**
- * page
+ * content
  */
 class _category extends \IPS\frontpage\Databases\Controller
 {
@@ -561,7 +561,7 @@ class _category extends \IPS\frontpage\Databases\Controller
 			\IPS\frontpage\Databases\Dispatcher::i()->output .= $stringTable;
 		}
 		
-		\IPS\Output::i()->title = ( $table->page > 1 ) ? \IPS\Member::loggedIn()->language()->addToStack( 'title_with_page_number', FALSE, array( 'sprintf' => array( $category->pageTitle(), $table->page ) ) ) : $category->pageTitle();
+		\IPS\Output::i()->title = ( $table->content > 1 ) ? \IPS\Member::loggedIn()->language()->addToStack( 'title_with_page_number', FALSE, array( 'sprintf' => array( $category->contentTitle(), $table->content ) ) ) : $category->contentTitle();
 		\IPS\frontpage\Databases\Dispatcher::i()->output .= \IPS\frontpage\Theme::i()->getTemplate( $category->_template_listing, 'frontpage', 'database' )->categoryFooter( $category, $stringTable, static::$activeFilters );
 	}
 	
@@ -600,8 +600,8 @@ class _category extends \IPS\frontpage\Databases\Controller
 		
 		\IPS\Output::i()->allowDefaultWidgets = FALSE;
 		\IPS\Output::i()->sidebar['enabled'] = FALSE;
-		\IPS\frontpage\Pages\Page::$currentPage->getWidgets();
-		\IPS\frontpage\Databases\Dispatcher::i()->output = \IPS\Output::i()->output = $form->customTemplate( array( \IPS\frontpage\Theme::i()->getTemplate( $database->template_form, 'frontpage', 'database' ), 'recordForm' ), NULL, $category, $database, \IPS\frontpage\Pages\Page::$currentPage, $title, $hasModOptions );
+		\IPS\frontpage\Fpages\Fpage::$currentContent->getWidgets();
+		\IPS\frontpage\Databases\Dispatcher::i()->output = \IPS\Output::i()->output = $form->customTemplate( array( \IPS\frontpage\Theme::i()->getTemplate( $database->template_form, 'frontpage', 'database' ), 'recordForm' ), NULL, $category, $database, \IPS\frontpage\Fpages\Fpage::$currentContent, $title, $hasModOptions );
 		\IPS\Output::i()->title = \IPS\Member::loggedIn()->language()->addToStack( $title );
 		\IPS\Output::i()->cssFiles = array_merge( \IPS\Output::i()->cssFiles, \IPS\Theme::i()->css( 'records/form.css', 'frontpage', 'front' ) );
 
