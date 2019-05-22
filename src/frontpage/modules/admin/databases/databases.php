@@ -91,22 +91,22 @@ class _databases extends \IPS\Node\Controller
 		$table->parsers = array(
 				'database_name'	=> function( $val, $row )
 				{
-					$page     = NULL;
+					$content     = NULL;
 					$database = NULL;
 
 					try
 					{
 						$database = \IPS\frontpage\Databases::load( $row['database_id'] );
 
-						if ( $database->page_id > 0 )
+						if ( $database->content_id > 0 )
 						{
 							try
 							{
-								$page = \IPS\frontpage\Pages\Page::load( $database->page_id );
+								$content = \IPS\frontpage\Fpages\Fpage::load( $database->content_id );
 							}
 							catch ( \OutOfRangeException $ex )
 							{
-								$database->page_id = 0;
+								$database->content_id = 0;
 								$database->save();
 							}
 						}
@@ -116,7 +116,7 @@ class _databases extends \IPS\Node\Controller
 
 					}
 
-					return \IPS\Theme::i()->getTemplate( 'databases' )->manageDatabaseName( $database, $row, $page );
+					return \IPS\Theme::i()->getTemplate( 'databases' )->manageDatabaseName( $database, $row, $content );
 				},
 				'database_category_count' => function( $val, $row )
 				{
@@ -980,7 +980,7 @@ class _databases extends \IPS\Node\Controller
 			}
 
 			/* Categories */
-			$textFields   = array( 'category_name', 'category_description', 'category_meta_keywords', 'category_meta_description', 'category_page_title' );
+			$textFields   = array( 'category_name', 'category_description', 'category_meta_keywords', 'category_meta_description', 'category_content_title' );
 			$removeFields = array( 'category_database_id', 'category_last_record_id', 'category_last_record_date', 'category_last_record_member', 'category_last_record_name', 'category_last_record_seo_name', 'category_records', 'category_record_comments',
 								   'category_record_comments_queued', 'category_rss_cache', 'category_rss_cached', 'category_rss_exclude', 'category_forum_override', 'category_forum_record', 'category_forum_comments', 'category_forum_delete', 'category_forum_suffix', 'category_forum_prefix',
 							       'category_forum_forum', 'category_full_path', 'category_last_title', 'category_last_seo_title');
@@ -1172,8 +1172,8 @@ class _databases extends \IPS\Node\Controller
 		}
 
 		/* Display */
-		\IPS\Output::i()->output .= \IPS\Theme::i()->getTemplate( 'global', 'core', 'admin' )->block( \IPS\Member::loggedIn()->language()->addToStack('frontpage_pages_settings'), $form, FALSE );
-		\IPS\Output::i()->title  = \IPS\Member::loggedIn()->language()->addToStack('frontpage_pages_settings');
+		\IPS\Output::i()->output .= \IPS\Theme::i()->getTemplate( 'global', 'core', 'admin' )->block( \IPS\Member::loggedIn()->language()->addToStack('frontpage_contents_settings'), $form, FALSE );
+		\IPS\Output::i()->title  = \IPS\Member::loggedIn()->language()->addToStack('frontpage_contents_settings');
 	}
 
 	/**
@@ -1345,7 +1345,7 @@ class _databases extends \IPS\Node\Controller
 			$current->template_form       = $values['database_template_form'];
 			$current->template_featured   = $values['database_template_featured'];
 			$current->cat_index_type      = $values['database_cat_index_type'];
-			$current->use_as_page_title   = $values['database_use_as_page_title'];
+			$current->use_as_content_title   = $values['database_use_as_content_title'];
 
 			$current->all_editable   = (int) $values['database_all_editable'];
 			$current->revisions      = (int) $values['database_revisions'];
@@ -1455,38 +1455,38 @@ class _databases extends \IPS\Node\Controller
 			
 			if ( $new )
 			{
-				if ( $values['database_create_page'] === 'new' )
+				if ( $values['database_create_content'] === 'new' )
 				{
-					$pageValues = array();
+					$contentValues = array();
 
 					foreach( $values as $k => $v )
 					{
-						if( mb_strpos( $k, 'page_' ) === 0 )
+						if( mb_strpos( $k, 'content_' ) === 0 )
 						{
-							$pageValues[ $k ]	= $v;
+							$contentValues[ $k ]	= $v;
 						}
 					}
 
-					if ( $values['page_type'] === 'html' )
+					if ( $values['content_type'] === 'html' )
 					{
-						$pageValues['page_content'] = '{database="' . $current->id . '"}';
-						$pageValues['page_template'] = '';
+						$contentValues['content_content'] = '{database="' . $current->id . '"}';
+						$contentValues['content_template'] = '';
 					}
-					$pageValues['page_folder_id'] = $pageValues['page_folder_id'] ?: 0;
+					$contentValues['content_folder_id'] = $contentValues['content_folder_id'] ?: 0;
 
-					$newPage = \IPS\frontpage\Pages\Page::createFromForm( $pageValues, 'html' );
+					$newContent = \IPS\frontpage\Fpages\Fpage::createFromForm( $contentValues, 'html' );
 
-					if ( $values['page_type'] !== 'html' )
+					if ( $values['content_type'] !== 'html' )
 					{
-						\IPS\Db::i()->insert( 'frontpage_page_widget_areas', array(
-							'area_page_id'     => $newPage->id,
+						\IPS\Db::i()->insert( 'frontpage_content_widget_areas', array(
+							'area_content_id'     => $newContent->id,
 							'area_widgets'     => json_encode( array( array( 'app' => 'frontpage', 'key' => 'Database', 'unique' => mt_rand(), 'configuration' => array( 'database' => $current->id ) ) ) ),
 							'area_area'        => 'col1',
 							'area_orientation' => 'horizontal'
 						) );
 					}
 					
-					$current->page_id = $newPage->id;
+					$current->content_id = $newContent->id;
 					$current->save();
 				}
 			}
@@ -1558,10 +1558,10 @@ class _databases extends \IPS\Node\Controller
 	        \IPS\Member::loggedIn()->language()->words['database_use_categories_warning'] =  \IPS\Member::loggedIn()->language()->addToStack( 'database_use_categories_impossible', NULL, array( 'sprintf' => array( $current->numberOfCategories() ) ) );
         }
         
-        $form->add( new \IPS\Helpers\Form\Radio( 'database_use_as_page_title' , $current ? $current->use_as_page_title : 1, FALSE, array(
+        $form->add( new \IPS\Helpers\Form\Radio( 'database_use_as_content_title' , $current ? $current->use_as_content_title : 1, FALSE, array(
             'options' => array(
-	            1	=> 'database_use_as_page_title_yes',
-	            0	=> 'database_use_as_page_title_no'
+	            1	=> 'database_use_as_content_title_yes',
+	            0	=> 'database_use_as_content_title_no'
             )
         ) ) );
 		
@@ -1819,19 +1819,19 @@ class _databases extends \IPS\Node\Controller
 		{
 			$form->addTab( 'content_database_form_options_forums' );
 
-			$databasePage = NULL;
+			$databaseContent = NULL;
 			try
 			{
 				if ( $current )
 				{
-					$databasePage = \IPS\frontpage\Pages\Page::loadByDatabaseId( $current->id );
+					$databaseContent = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $current->id );
 				}
 			}
 			catch( \OutOfRangeException $e ) { }
 
-			if ( ! $databasePage )
+			if ( ! $databaseContent )
 			{
-				$form->addMessage( 'frontpage_no_db_page_no_forum_link', 'ipsMessage ipsMessage_info' );
+				$form->addMessage( 'frontpage_no_db_content_no_forum_link', 'ipsMessage ipsMessage_info' );
 			}
 			
 			if ( $current )
@@ -1881,66 +1881,66 @@ class _databases extends \IPS\Node\Controller
 		
 		if ( ! $current )
 		{
-			$form->addTab( 'content_database_form_options_page' );
-			$form->addMessage( 'content_database_form_options_page_msg' );
+			$form->addTab( 'content_database_form_options_content' );
+			$form->addMessage( 'content_database_form_options_content_msg' );
 			
-			$pageToggles    = array();
-			$pageFormFields = array();
+			$contentToggles    = array();
+			$contentFormFields = array();
 			
-			foreach( \IPS\frontpage\Pages\Page::formElements() as $name => $field )
+			foreach( \IPS\frontpage\Fpages\Fpage::formElements() as $name => $field )
 			{
-				if ( $name === 'page_name' )
+				if ( $name === 'content_name' )
 				{
 					/* Overwrite field */
-					$field = new \IPS\Helpers\Form\Translatable( 'page_name', FALSE, NULL, array( 'app' => 'frontpage', 'key' => NULL, 'maxLength' => 64 ), function( $val )
+					$field = new \IPS\Helpers\Form\Translatable( 'content_name', FALSE, NULL, array( 'app' => 'frontpage', 'key' => NULL, 'maxLength' => 64 ), function( $val )
 					{
-						if ( !trim( $val[ \IPS\Lang::defaultLanguage() ] ) AND \IPS\Request::i()->database_create_page === 'new' )
+						if ( !trim( $val[ \IPS\Lang::defaultLanguage() ] ) AND \IPS\Request::i()->database_create_content === 'new' )
 						{
 							throw new \DomainException('form_required');
 						}
-					}, NULL, NULL, 'page_name' );
+					}, NULL, NULL, 'content_name' );
 				}
 
-				if ( $name !== 'page_content' AND $name !== 'tab_content' )
+				if ( $name !== 'content_content' AND $name !== 'tab_content' )
 				{
-					$pageToggles[] = $name;
-					$pageFormFields[ $name ] = $field;
+					$contentToggles[] = $name;
+					$contentFormFields[ $name ] = $field;
 				}
 
-				if ( $name === 'page_folder_id' )
+				if ( $name === 'content_folder_id' )
 				{
-					$pageFormFields['page_type'] = new \IPS\Helpers\Form\Radio(
-						'page_type', 'builder', FALSE, array(
+					$contentFormFields['content_type'] = new \IPS\Helpers\Form\Radio(
+						'content_type', 'builder', FALSE, array(
 						'options'  => array(
-							'builder' => 'page_type_builder',
-							'html'    => 'page_type_manual'
+							'builder' => 'content_type_builder',
+							'html'    => 'content_type_manual'
 						),
 						'descriptions' => array(
-							'builder' => 'page_type_builder_desc',
-							'html'    => 'page_type_manual_custom_desc'
+							'builder' => 'content_type_builder_desc',
+							'html'    => 'content_type_manual_custom_desc'
 						),
 						'toggles' => array(
-							'builder' => array( 'page_template' ),
-							'html'    => array( 'page_show_sidebar', 'page_wrapper_template', 'page_ipb_wrapper' )
+							'builder' => array( 'content_template' ),
+							'html'    => array( 'content_show_sidebar', 'content_wrapper_template', 'content_ipb_wrapper' )
 						)
-					), NULL, NULL, NULL, 'page_type'
+					), NULL, NULL, NULL, 'content_type'
 					);
 
-					$pageToggles[] = 'page_type';
+					$contentToggles[] = 'content_type';
 				}
 			}
 			
-			$form->add( new \IPS\Helpers\Form\Radio( 'database_create_page', 'existing', FALSE, array(
+			$form->add( new \IPS\Helpers\Form\Radio( 'database_create_content', 'existing', FALSE, array(
 				'options'   => array(
-					'existing' => 'database_create_page_existing',
-					'new'	   => 'database_create_page_new'
+					'existing' => 'database_create_content_existing',
+					'new'	   => 'database_create_content_new'
 				),
 				'toggles' => array(
-					'new' => $pageToggles
+					'new' => $contentToggles
 				)
-			), NULL, NULL, NULL, 'database_create_page' ) );
+			), NULL, NULL, NULL, 'database_create_content' ) );
 			
-			foreach( $pageFormFields as $name => $field )
+			foreach( $contentFormFields as $name => $field )
 			{
 				if ( \is_array( $field ) )
 				{
