@@ -37,7 +37,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 }
 
 /**
- * Front Navigation Extension: Contents
+ * Front Navigation Extension: Fpages
  */
 class _Fpages extends \IPS\core\FrontNavigation\FrontNavigationAbstract
 {
@@ -77,7 +77,7 @@ class _Fpages extends \IPS\core\FrontNavigation\FrontNavigationAbstract
 		}
 		
 		return array(
-			new \IPS\Helpers\Form\Select( 'menu_content_fpage', isset( $existingConfiguration['menu_content_fpage'] ) ? $existingConfiguration['menu_content_fpage'] : NULL, NULL, array( 'options' => $contents ), NULL, NULL, NULL, 'menu_content_fpage' ),
+			new \IPS\Helpers\Form\Select( 'menu_content_fpage', isset( $existingConfiguration['menu_content_fpage'] ) ? $existingConfiguration['menu_content_fpage'] : NULL, NULL, array( 'options' => $fpages ), NULL, NULL, NULL, 'menu_content_fpage' ),
 			new \IPS\Helpers\Form\Radio( 'menu_title_fpage_type', isset( $existingConfiguration['menu_title_fpage_type'] ) ? $existingConfiguration['menu_title_fpage_type'] : 0, NULL, array( 'options' => array( 0 => 'menu_title_fpage_inherit', 1 => 'menu_title_fpage_custom' ), 'toggles' => array( 1 => array( 'menu_title_fpage' ) ) ), NULL, NULL, NULL, 'menu_title_fpage_type' ),
 			new \IPS\Helpers\Form\Translatable( 'menu_title_fpage', NULL, NULL, array( 'app' => 'frontpage', 'key' => $id ? "frontpage_menu_title_{$id}" : NULL ), NULL, NULL, NULL, 'menu_title_fpage' ),
 		);
@@ -123,7 +123,7 @@ class _Fpages extends \IPS\core\FrontNavigation\FrontNavigationAbstract
 			return TRUE;
 		}
 		
-		/* Inherit from content */
+		/* Inherit from fpage */
 		$store = \IPS\frontpage\Fpages\Fpage::getStore();
 
 		if ( isset( $store[ $this->configuration['menu_content_fpage'] ] ) )
@@ -171,7 +171,7 @@ class _Fpages extends \IPS\core\FrontNavigation\FrontNavigationAbstract
 		}
 		
 		/* Fall back here */
-		return \IPS\frontpage\Fpages\Fpage::load( $this->configuration['menu_content_content'] )->url();
+		return \IPS\frontpage\Fpages\Fpage::load( $this->configuration['menu_content_fpage'] )->url();
 	}
 	
 	/**
