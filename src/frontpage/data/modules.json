@@ -8,8 +8,8 @@
             "default_controller": "configure",
             "protected": 0
         },
-        "pages": {
-            "default_controller": "pages",
+        "fpages": {
+            "default_controller": "fpages",
             "protected": 0
         },
         "databases": {
@@ -18,8 +18,8 @@
         }
     },
     "front": {
-        "pages": {
-            "default_controller": "main",
+        "fpages": {
+            "default_controller": "fpage",
             "protected": 0
         },
         "database": {
