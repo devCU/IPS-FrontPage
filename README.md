@@ -7,7 +7,7 @@
 [![Development](https://img.shields.io/badge/Development-Active-success.svg)](https://www.devcu.com/devcu-tracker/)
 [![Platform](https://img.shields.io/badge/Platform-IPS4.4+-blue.svg)](https://www.devcu.com/devcu-tracker/)
 [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/devCU/IPS-FrontPage/development.svg)](https://www.devcu.com/devcu-tracker/)
-<p style='text-align: center;'>
+
 ## ** Become a Patron/Supporter of devCU **
 	
 **Please support our Open Source Projects and keep this software free**
@@ -15,7 +15,6 @@
 - Patrons and Donators have access to Beta and Release version up to 2 weeks before the public
 
 [![donate](https://www.devcu.net/mediasrc/patronize_devcu.png)](https://www.patreon.com/devcu/) [![donate](https://www.devcu.net/mediasrc/support_devcu.png?v=1)](https://www.devcu.com/clients/donations/)
-</p>
     
 <pre>
     .-"^`\                                        /`^"-.
