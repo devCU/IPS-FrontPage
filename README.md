@@ -1,3 +1,4 @@
+<p align="center">
 ![devCUHead](https://www.devcu.net/mediasrc/github-banner.png?V=1.0)
 
 [![License](https://img.shields.io/badge/License-GNUv3-important.svg)](https://github.com/WXdisco/IPS-localWX/blob/master/LICENSE)
@@ -30,7 +31,7 @@
          `'-\_\_\          v 1.0.0         /_/_/-'`
                 '--------------------------'
 </pre>
-
+</p>
 # IPS FrontPage
 
 #### Responsive FrontPage themes for your IPS community
