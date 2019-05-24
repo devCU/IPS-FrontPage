@@ -1,9 +1,9 @@
-![devCUHead](https://www.devcu.net/mediasrc/githubhead_2.gif?V=1.4)
+![devCUHead](https://www.devcu.net/mediasrc/github-banner.png?V=1.0)
 
 [![License](https://img.shields.io/badge/License-GNUv3-important.svg)](https://github.com/WXdisco/IPS-localWX/blob/master/LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-ff69b4.svg)](https://www.devcu.com/forums/devcu-tracker/)
 [![Build](https://img.shields.io/badge/Build-Beta-blueviolet.svg)](https://www.devcu.com/forums/devcu-tracker/)
-[![Status](https://img.shields.io/badge/Status-Unstable-critical.svg)](https://www.devcu.com/forums/devcu-tracker/)
+[![Status](https://img.shields.io/badge/Status-Stable-critical.svg)](https://www.devcu.com/forums/devcu-tracker/)
 [![Development](https://img.shields.io/badge/Development-Active-success.svg)](https://www.devcu.com/forums/devcu-tracker/)
 [![Platform](https://img.shields.io/badge/Platform-IPS4.4+-blue.svg)](https://www.devcu.com/forums/devcu-tracker/)
 
@@ -49,9 +49,9 @@
 
 ## ** Updated Notes **
 
-05/19/19
+05/24/19
 
-- Late May 2019 Release
+- June 1st Patron Release
 - Initial Development Stage
 - Please report and issues, feature requests, or suggestions in Issues
 
