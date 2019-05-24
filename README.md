@@ -1,6 +1,6 @@
 ![devCUHead](https://www.devcu.net/mediasrc/github-banner.png?V=1.0)
 
-[![License](https://img.shields.io/badge/License-GNUv3-important.svg)](https://github.com/WXdisco/IPS-localWX/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-GNUv3-important.svg)](https://github.com/devCU/IPS-FrontPage/blob/master/LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.0-ff69b4.svg)](https://www.devcu.com/devcu-tracker/)
 [![Build](https://img.shields.io/badge/Build-RC.1-yellow.svg)](https://www.devcu.com/devcu-tracker/)
 [![Status](https://img.shields.io/badge/Status-Stable-success.svg)](https://www.devcu.com/devcu-tracker/)
