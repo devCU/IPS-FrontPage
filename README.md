@@ -1,7 +1,7 @@
 ![devCUHead](https://www.devcu.net/mediasrc/github-banner.png?V=1.0)
 
 [![License](https://img.shields.io/badge/License-GNUv3-important.svg)](https://github.com/devCU/IPS-FrontPage/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.0-ff69b4.svg)](https://www.devcu.com/devcu-tracker/)
+[![Version](https://img.shields.io/badge/Version-1.0.4-ff69b4.svg)](https://www.devcu.com/devcu-tracker/)
 [![Build](https://img.shields.io/badge/Build-RC.1-yellow.svg)](https://www.devcu.com/devcu-tracker/)
 [![Status](https://img.shields.io/badge/Status-Stable-success.svg)](https://www.devcu.com/devcu-tracker/)
 [![Development](https://img.shields.io/badge/Development-Active-success.svg)](https://www.devcu.com/devcu-tracker/)
@@ -26,7 +26,7 @@
  \  | \  . \ ;  |   Open Source Projects   || ; / .  / |  /
   '\_\ \\ \ \ \ |                          ||/ / / // /_/'
         \\ \ \ \|       IPS FrontPage      |/ / / //
-         `'-\_\_\          v 1.0.0         /_/_/-'`
+         `'-\_\_\          v 1.0.4         /_/_/-'`
                 '--------------------------'
 </pre>
 
@@ -49,10 +49,10 @@
 
 ## ** Updated Notes **
 
-05/24/19
+03/20/20
 
-- June 1st Patron Release
-- Initial Development Stage
+- May 1st Patron release
+- 1.0.4 RC 1 Stable
 - Please report and issues, feature requests, or suggestions in Issues
 
 
