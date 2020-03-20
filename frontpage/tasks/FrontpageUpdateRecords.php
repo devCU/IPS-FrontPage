@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     19 MAY 2019
+ * @Updated     20 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -63,6 +63,16 @@ class _FrontpageUpdateRecords extends \IPS\Task
 			
 			$fixedFields = $database->fixed_field_perms;
 			if ( ! \in_array( 'record_expiry_date', array_keys( $fixedFields ) ) )
+			{
+				continue;
+			}
+
+			/* Check the database is placed on a valid page */
+			try
+			{
+				\IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $database->id );
+			}
+			catch( \OutOfRangeException $ex )
 			{
 				continue;
 			}
