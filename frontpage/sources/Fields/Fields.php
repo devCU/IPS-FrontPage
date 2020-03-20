@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     20 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -205,7 +205,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 	/**
 	 * @brief	Fields that can be filtered on the front end. These appear in \Table advanced search and also in the DatabaseFilters widget.
 	 */
-	protected static $filterableFields = array( 'CheckboxSet', 'Radio', 'Select', 'YesNo', 'Date' );
+	protected static $filterableFields = array( 'CheckboxSet', 'Radio', 'Select', 'YesNo', 'Date', 'Member' );
 	
 	/**
 	 * Load Record
@@ -421,7 +421,8 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 			{
 				$customValidationCode = function( $val ) use ( $database, $row, $record )
 				{
-					call_user_func_array( 'IPS\frontpage\Fields' . static::$customDatabaseId . '::validateUnique', array( $val, $row, $record ) );
+					$class = 'IPS\frontpage\Fields' . static::$customDatabaseId;
+					$class::validateUnique( $val, $row, $record );
 				};
 			}
 
@@ -789,6 +790,31 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 
 						$value = implode( " ", $parsed );
 					}
+					else if ( $this->type === 'Member' )
+					{
+						if ( mb_strstr( $value, "\n" ) )
+						{
+							$members = explode( "\n", $formValue );
+						}
+						else
+						{
+							$members = array( $formValue );
+						}
+
+						$parsed = array();
+
+						foreach( $members as $id )
+						{
+							try
+							{
+								$parsed[] = \IPS\Member::load( $id )->link();
+							}
+							catch( \Exception $e ) { }
+						}
+						
+						$value = implode( ", ", $parsed );
+						
+					}
 
 					$value = \IPS\Theme::i()->getTemplate( 'records', 'frontpage', 'global' )->fieldBadge( $this->_title, $value, $class );
 				}
@@ -1024,7 +1050,12 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 	public static function validateUnique( $val, $field, $record )
 	{
 		$database = \IPS\frontpage\Databases::load( static::$customDatabaseId );
-		
+
+		if( $field->type == 'Member' AND $val instanceof \IPS\Member )
+		{
+			$val = $val->member_id;
+		}
+
 		$where = array( array( 'field_' . $field->id . '=?', $val ) );
 							
 		if ( $record !== NULL )
@@ -1379,10 +1410,16 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 				}
 				else
 				{
-					return implode( ', ', array_map( function( $id )
+					$links = array();
+
+					$value = \is_array( $value ) ? $value : ( ( $value instanceof \IPS\Member ) ? array( $value ) : explode( "\n", $value ) );
+					
+					foreach( $value as $id )
 					{
-						return \IPS\Member::load( $id )->link();
-					}, explode( "\n", $value ) ) );
+						$links[] = ( $id instanceof \IPS\Member ) ? $id->link() : \IPS\Member::load( $id )->link();
+					}
+					
+					return implode( ', ', $links );
 				}
 			break;
 			case 'Url':
@@ -2078,7 +2115,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 			$form->add( new \IPS\Helpers\Form\YesNo( 'field_display_listing', $this->id ? $this->display_listing : 1, FALSE, array( 'togglesOn' => array('field_truncate', 'field_display_listing_json_badge') ), NULL, NULL, NULL, 'field_display_listing' ) );
 		}
 
-		$form->add( new \IPS\Helpers\Form\Radio( 'field_display_listing_json_badge', $listingDefault, FALSE, array( 'options' => $listingOptions, 'toggles' => $listingToggles ), NULL, NULL, NULL, 'field_display_listing_json_badge' ) );
+		$form->add( new \IPS\Helpers\Form\Radio( 'field_display_listing_json_badge', $listingDefault, FALSE, array( 'options' => $listingOptions, 'toggles' => $listingToggles, 'parse' => 'raw' ), NULL, NULL, NULL, 'field_display_listing_json_badge' ) );
 
 		if ( ! $isTitleOrContent )
 		{
@@ -2118,7 +2155,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 			$form->add( new \IPS\Helpers\Form\YesNo( 'field_display_display', $this->id ? $this->display_display : 1, FALSE, array( 'togglesOn' => array( 'field_display_display_json_badge' ) ), NULL, NULL, NULL, 'field_display_display' ) );
 		}
 
-		$form->add( new \IPS\Helpers\Form\Radio( 'field_display_display_json_badge', $displayDefault, FALSE, array( 'options' => $displayOptions, 'toggles' => $displayToggles ), NULL, NULL, NULL, 'field_display_display_json_badge' ) );
+		$form->add( new \IPS\Helpers\Form\Radio( 'field_display_display_json_badge', $displayDefault, FALSE, array( 'options' => $displayOptions, 'toggles' => $displayToggles, 'parse' => 'raw' ), NULL, NULL, NULL, 'field_display_display_json_badge' ) );
 
 		$form->add( new \IPS\Helpers\Form\YesNo( 'field_show_map_display', $mapDisplay, FALSE, array(), NULL, NULL, NULL, 'field_show_map_display' ) );
 		$form->add( new \IPS\Helpers\Form\WidthHeight( 'field_show_map_display_dims', $mapDisplayDims, FALSE, array( 'resizableDiv' => FALSE ), NULL, NULL, NULL, 'field_show_map_display_dims' ) );
@@ -2971,9 +3008,10 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 				{
 					$value = array_map( function( $id )
 					{
-						return \IPS\Member::load( $id );
+						return \IPS\Member::load( \intval( $id ) );
 					}, explode( "\n", $value ) );
 				}
+				
 				break;
 			case 'Date':
 				if ( \is_numeric( $value ) )
