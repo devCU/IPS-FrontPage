@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     21 MAY 2019
+ * @Updated     20 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -40,7 +40,7 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 }
 
 /**
- * @brief	Database Records API
+ * @brief Database Records API
  */
 class _records extends \IPS\Content\Api\ItemController
 {
@@ -179,7 +179,7 @@ class _records extends \IPS\Content\Api\ItemController
 	 * POST /frontpage/records/{database_id}
 	 * Create a record
 	 *
-	 * @note	For requests using an OAuth Access Token for a particular member, any parameters the user doesn't have permission to use are ignored (for example, locked will only be honoured if the authentictaed user has permission to lock records).
+	 * @note	For requests using an OAuth Access Token for a particular member, any parameters the user doesn't have permission to use are ignored (for example, locked will only be honoured if the authenticated user has permission to lock records).
 	 * @param		int					$database			Database ID Number
 	 * @reqapiparam	int					category			The ID number of the category the record should be created in. If the database does not use categories, this is not required
 	 * @reqapiparam	int					author				The ID number of the member creating the record (0 for guest) Required for requests made using an API Key or the Client Credentials Grant Type. For requests using an OAuth Access Token for a particular member, that member will always be the author
@@ -276,7 +276,7 @@ class _records extends \IPS\Content\Api\ItemController
 	 * POST /frontpage/records/{database_id}/{record_id}
 	 * Edit a record
 	 *
-	 * @note		For requests using an OAuth Access Token for a particular member, any parameters the user doesn't have permission to use are ignored (for example, locked will only be honoured if the authentictaed user has permission to lock topics).
+	 * @note		For requests using an OAuth Access Token for a particular member, any parameters the user doesn't have permission to use are ignored (for example, locked will only be honoured if the authenticated user has permission to lock topics).
 	 * @param		int					$database		Database ID Number
 	 * @param		int					$record			Record ID Number
 	 * @apiparam	int					category		The ID number of the category the record should be created in. If the database does not use categories, this is not required
@@ -284,7 +284,6 @@ class _records extends \IPS\Content\Api\ItemController
 	 * @reqapiparam	object				fields				Field values. Keys should be the field ID, and the value should be the value. For requests using an OAuth Access Token for a particular member, values will be sanatised where necessary. For requests made using an API Key or the Client Credentials Grant Type values will be saved unchanged.
 	 * @apiparam	string				prefix			Prefix tag
 	 * @apiparam	string				tags			Comma-separated list of tags (do not include prefix)
-	 * @apiparam	datetime			date			The date/time that should be used for the record date. If not provided, will use the current date/time. Ignored for requests using an OAuth Access Token for a particular member.
 	 * @apiparam	string				ip_address		The IP address that should be stored for the record. If not provided, will use the IP address from the API request. Ignored for requests using an OAuth Access Token for a particular member.
 	 * @apiparam	int					locked			1/0 indicating if the record should be locked
 	 * @apiparam	int					hidden			0 = unhidden; 1 = hidden, pending moderator approval; -1 = hidden (as if hidden by a moderator)
