@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     20 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -269,14 +269,15 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 		$menu = array();
 
 		foreach(
-			\IPS\Db::i()->select( '*, core_sys_lang_words.word_custom as database_name', 'frontpage_databases', NULL, 'core_sys_lang_words.word_custom' )->join(
-				'core_sys_lang_words', "core_sys_lang_words.word_key=CONCAT( 'content_db_', frontpage_databases.database_id ) AND core_sys_lang_words.lang_id=" . \IPS\Member::loggedIn()->language()->id
-			)
+			\IPS\Db::i()->select( '*, core_sys_lang_words.word_custom as database_name, core_sys_lang_words2.word_custom as record_name', 'frontpage_databases', NULL, 'core_sys_lang_words.word_custom' )
+				->join( 'core_sys_lang_words', "core_sys_lang_words.word_key=CONCAT( 'content_db_', frontpage_databases.database_id ) AND core_sys_lang_words.lang_id=" . \IPS\Member::loggedIn()->language()->id )
+				->join( array( 'core_sys_lang_words', 'core_sys_lang_words2' ), "core_sys_lang_words2.word_key=CONCAT( 'content_db_lang_pu_', frontpage_databases.database_id ) AND core_sys_lang_words2.lang_id=" . \IPS\Member::loggedIn()->language()->id )
 			as $row )
 		{
 			$menu[] = array(
 				'id'             => $row['database_id'],
 				'title'          => $row['database_name'],
+				'record_name'	 => $row['record_name'],
 				'use_categories' => $row['database_use_categories']
 			);
 		}
@@ -335,7 +336,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 				}
 				else
 				{
-					$changes[] = "DROP " . \IPS\Db::i()->escape_string( $key );
+					$changes[] = "DROP KEY" . \IPS\Db::i()->escape_string( $key );
 				}
 
 				$changes[] =  \IPS\Db::i()->buildIndex( $tableName, $data );
@@ -764,6 +765,39 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	}
 
 	/**
+	 * Disabled permissions
+	 * Allow node classes to define permissions that are unselectable in the permission matrix
+	 *
+	 * @return array	array( {group_id} => array( 'read', 'view', 'perm_7' );
+	 * @throws UnderflowException (if guest group ID is invalid)
+	 */
+	public function disabledPermissions()
+	{
+		$disabled = array();
+
+		try
+		{
+			$permissions = \IPS\frontpage\Fpages\Fpage::load( $this->fpage_id )->permissions();
+
+			if( $permissions['perm_view'] != '*' )
+			{
+				$pageViewPermissions = explode( ',', $permissions['perm_view'] );
+
+				foreach ( \IPS\Member\Group::groups() as $group )
+				{
+					if ( ! \in_array( $group->g_id, $fpageViewPermissions ) )
+					{
+						$disabled[ $group->g_id ] = array( 'view', 2, 3, 4, 5, 6, 7 );
+					}
+				}
+			}
+		}
+		catch( \OutOfRangeException $e ){}
+
+		return $disabled;
+	}
+
+	/**
 	 * Sets up and preloads some words
 	 *
 	 * @return void
@@ -902,7 +936,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 		/* Delete notifications */
 		$memberIds	= array();
 
-		foreach( \IPS\Db::i()->select( 'member', 'core_notifications', array( 'item_class=? ', 'IPS\frontpage\Records' . $this->id ) ) as $member )
+		foreach( \IPS\Db::i()->select( '`member`', 'core_notifications', array( 'item_class=? ', 'IPS\frontpage\Records' . $this->id ) ) as $member )
 		{
 			$memberIds[ $member ]	= $member;
 		}
