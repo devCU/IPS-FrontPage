@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     20 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -854,7 +854,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 		\IPS\Db::i()->delete( 'core_tags_perms', array( 'tag_perm_aap_lookup=?', $aap ) );
 
 		/* Delete category follows */
-		\IPS\Db::i()->delete( 'core_follow', array( "follow_app=? AND follow_area=? AND follow_rel_id=?", static::$permApp, static::$permType . $this->database()->id, $this->_id ) );
+		\IPS\Db::i()->delete( 'core_follow', array( "follow_app=? AND follow_area=? AND follow_rel_id=?", 'frontpage', 'categories' . $this->database()->id, $this->_id ) );
 
 		if( $this->hasChildren() )
 		{
@@ -1186,6 +1186,24 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 		{
 			return parent::get__title();
 		}
+	}
+	
+	/**
+	 * Get the title for a node using the specified language object
+	 * This is commonly used where we cannot use the logged in member's language, such as sending emails
+	 *
+	 * @param	\IPS\Lang	$language	Language object to fetch the title with
+	 * @param	array 		$options	What options to use for language parsing
+	 * @return	string
+	 */
+	public function getTitleForLanguage( $language, $options=array() )
+	{
+		if ( ! \IPS\frontpage\Databases::load( $this->database_id )->use_categories )
+		{
+			return $language->addToStack( 'content_db_' . $this->database_id, NULL, $options );
+		}
+		
+		return parent::getTitleForLanguage( $language, $options );
 	}
 	
 	/**
@@ -1774,7 +1792,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 			$toSave = array();
 			foreach( $values AS $key => $data )
 			{
-				if ( \count( $data ) )
+				if ( \is_numeric( $key ) or $key == 'frontpage_record_i_started' )
 				{
 					$toSave[$key] = $data;
 				}
