@@ -6,11 +6,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     20 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -794,25 +794,33 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 					preg_match( '#{database="([^"]+?)"#', $val, $matches );
 					if ( isset( $matches[1] ) )
 					{
-						try
+						$database = NULL;
+
+						if ( \is_numeric( $matches[1] ) )
 						{
-							if ( \is_numeric( $matches[1] ) )
+							try
 							{
 								$database = \IPS\frontpage\Databases::load( \intval( $matches[1] ) );
 							}
-							else
+							catch( \OutOfRangeException $ex ){}
+						}
+
+						if( $database === NULL )
+						{
+							try
 							{
 								$database = \IPS\frontpage\Databases::load( $matches[1], 'database_key' );
 							}
-							
-							if ( $database->fpage_id )
-							{
-								throw new \LogicException('frontpage_err_db_in_use_other_fpage');
-							}
+							catch( \OutOfRangeException $ex ){}
 						}
-						catch( \OutOfRangeException $ex )
+
+						if( $database === NULL )
 						{
 							throw new \LogicException('frontpage_err_db_does_not_exist');
+						}
+						elseif( $database->fpage_id )
+						{
+							throw new \LogicException('frontpage_err_db_in_use_other_page');
 						}
 					}
 				}
@@ -972,6 +980,8 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 		}
 		
 		\IPS\Data\Store::i()->fpages_fpage_urls = $store;
+
+		\IPS\Member::clearCreateMenu();
 	}
 	
 	/**
@@ -2012,6 +2022,10 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 				/* Restore content in the search index */
 				\IPS\Task::queue( 'core', 'RebuildSearchIndex', array( 'class' => 'IPS\frontpage\Records' . $database->id ) );
+				
+				/* Restore content in social promote table */
+				$class = 'IPS\frontpage\Records' . $database->id;
+				\IPS\core\Promote::changeHiddenByClass( new $class, FALSE );
 			}
 
 			return TRUE;
@@ -2033,6 +2047,10 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 			/* Remove from search */
 			\IPS\Content\Search\Index::i()->removeClassFromSearchIndex( 'IPS\frontpage\Records' . $database->id );
+			
+			/* Remove content in social promote table */
+			$class = 'IPS\frontpage\Records' . $database->id;
+			\IPS\core\Promote::changeHiddenByClass( new $class, TRUE );
 		}
 		catch( \OutOfRangeException $ex )
 		{
@@ -2280,7 +2298,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 				\IPS\Member::loggedIn()->language()->parseOutputForDisplay( \IPS\Output::i()->title );
 
 				/* Send straight to the output engine */
-				\IPS\Output::i()->sendOutput( \IPS\Theme::i()->getTemplate( 'global', 'core' )->globalTemplate( \IPS\Output::i()->title, \IPS\Output::i()->output, array( 'app' => \IPS\Dispatcher::i()->application->directory, 'module' => \IPS\Dispatcher::i()->module->key, 'controller' => \IPS\Dispatcher::i()->controller ) ), ( $httpStatusCode ? $httpStatusCode : 200 ), 'text/html', ( $httpHeaders ? $httpHeaders : \IPS\Output::i()->httpHeaders ) );
+				\IPS\Output::i()->sendOutput( \IPS\Theme::i()->getTemplate( 'global', 'core' )->globalTemplate( \IPS\Output::i()->title, \IPS\Output::i()->output, array( 'app' => \IPS\Dispatcher::i()->application->directory, 'module' => \IPS\Dispatcher::i()->module->key, 'controller' => \IPS\Dispatcher::i()->controller ) ), ( $httpStatusCode ? $httpStatusCode : 200 ), 'text/html', ( $httpHeaders ? $httpHeaders : array() ) );
 			}
 			else
 			{
@@ -2337,7 +2355,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 			/* Send straight to the output engine */
 			$content = $content ?: $this->getHtmlContent();
 			$content .= $mfa;
-			\IPS\Output::i()->sendOutput( $content, ( $httpStatusCode ? $httpStatusCode : 200 ), $this->getContentType(), ( $httpHeaders ? $httpHeaders : \IPS\Output::i()->httpHeaders ) );
+			\IPS\Output::i()->sendOutput( $content, ( $httpStatusCode ? $httpStatusCode : 200 ), $this->getContentType(), ( $httpHeaders ? $httpHeaders : array() ) );
 		}
 	}
 	
