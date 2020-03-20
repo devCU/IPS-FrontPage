@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     20 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -187,7 +187,7 @@ class _Dispatcher extends \IPS\Dispatcher
 
 		$path = trim(  preg_replace( '#' . \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path . '#', '', \IPS\Request::i()->path, 1 ), '/' );
 
-		/* If we visited the default fpage in a folder, the full_path will be like folder/fpage but the request path will just be folder */
+		/* If we visited the default fpage in a folder, the full_path will be like folder/page but the request path will just be folder */
 		if( \IPS\Request::i()->path . '/' . \IPS\frontpage\Fpages\Fpage::$currentFpage->seo_name == \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path )
 		{
 			$path = '';
@@ -362,7 +362,7 @@ class _Dispatcher extends \IPS\Dispatcher
 		\IPS\Output::i()->defaultSearchOption = array( "frontpage_records{$this->databaseId}", "frontpage_records{$this->databaseId}_pl" );
 
 		/* Add database key to body classes for easier database specific themeing */
-		\IPS\Output::i()->bodyClasses[] = 'cFrontpageDatabase_' . $database->key;
+		\IPS\Output::i()->bodyClasses[] = 'cFontpageDatabase_' . $database->key;
 		
 		/* Execute */
 		$controller->execute();
