@@ -1,4 +1,4 @@
-![devCUHead](https://www.devcu.net/mediasrc/github-banner.png?V=1.0)
+![devCUHead](https://www.devcu.com/mediasrc/github-banner.png?V=1.0)
 
 [![License](https://img.shields.io/badge/License-GNUv3-important.svg)](https://github.com/devCU/IPS-FrontPage/blob/master/LICENSE)
 [![Version](https://img.shields.io/badge/Version-1.0.4-ff69b4.svg)](https://www.devcu.com/devcu-tracker/)
@@ -14,7 +14,7 @@
 
 - Patrons and Donators have access to Beta and Release version up to 2 weeks before the public
 
-[![donate](https://www.devcu.net/mediasrc/patronize_devcu.png)](https://www.patreon.com/devcu/) [![donate](https://www.devcu.net/mediasrc/support_devcu.png?v=1)](https://www.devcu.com/clients/donations/)
+[![donate](https://www.devcu.com/mediasrc/patronize_devcu.png)](https://www.patreon.com/devcu/) [![donate](https://www.devcu.com/mediasrc/support_devcu.png?v=1)](https://www.devcu.com/clients/donations/)
     
 <pre>
     .-"^`\                                        /`^"-.
@@ -40,7 +40,7 @@
 - Example, live demo coming soon!
 
 
-<img src="https://www.devcu.net/mediasrc/FrontPage.PNG?V=1.1" width="50%"></img>
+<img src="https://www.devcu.com/mediasrc/FrontPage.PNG?V=1.1" width="50%"></img>
 
 
 ## Install
@@ -66,4 +66,4 @@ Please! Contact Me
 
 ## Copyrights
 
-Created for devCU Software ©2019
+Created for devCU Software ©2020
