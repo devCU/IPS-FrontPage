@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     21 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -260,6 +260,14 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	public static function loadFromUrl( \IPS\Http\Url $url )
 	{
+		/* First, make sure the PAGE matches */
+		$page = \IPS\frontpage\Pages\Page::loadFromUrl( $url );
+
+		if( $fpage->_id != static::database()->fpage_id )
+		{
+			throw new \OutOfRangeException;
+		}
+
 		$qs = array_merge( $url->queryString, $url->hiddenQueryString );
 		
 		if ( isset( $qs['path'] ) )
@@ -503,7 +511,12 @@ class _Records extends \IPS\Content\Item implements
                 {
                     $cat = \intval( ( isset( \IPS\Request::i()->content_record_form_container ) ) ? \IPS\Request::i()->content_record_form_container : 0 );
                     $recordsClass = '\IPS\frontpage\Records' . $database->id;
-
+					
+					if ( $recordsClass::isFurlCollision( $val ) )
+					{
+						 throw new \InvalidArgumentException('content_record_slug_not_unique');
+					}
+					
                     /* Fetch record by static slug */
                     $record = $recordsClass::load( $val, 'record_static_furl' );
 
@@ -1225,6 +1238,7 @@ class _Records extends \IPS\Content\Item implements
 	 *
 	 * @param	string|NULL		$action		Action
 	 * @return	\IPS\Http\Url
+	 * @throws 	\LogicException
 	 */
 	public function url( $action=NULL )
 	{
@@ -1294,10 +1308,9 @@ class _Records extends \IPS\Content\Item implements
 	 * Query to get additional data for search result / stream view
 	 *
 	 * @param	array	$items	Item data (will be an array containing values from basicDataColumns())
-	 * @param	\IPS\Member\NULL	$member		Member profile we are viewing (if any)
 	 * @return	array
 	 */
-	public static function searchResultExtraData( $items, $member=NULL )
+	public static function searchResultExtraData( $items )
 	{
 		$categoryIds = array();
 		
@@ -1463,7 +1476,7 @@ class _Records extends \IPS\Content\Item implements
 		$idColumn = static::$databaseColumnId;
 		$attachments = array();
 		
-		$internal = \IPS\Db::i()->select( 'attachment_id', 'core_attachments_map', array( 'location_key=? and id1=? and id3=?', 'frontpage_Records', $this->$idColumn, static::$customDatabaseId ) );
+		$internal = \IPS\Db::i()->select( 'attachment_id', 'core_attachments_map', array( '(location_key=? OR location_key=?) and id1=? and id3=?', 'frontpage_Records', 'frontpage_Records' . static::$customDatabaseId, $this->$idColumn, static::$customDatabaseId ) );
 		
 		/* Attachments */
 		foreach( \IPS\Db::i()->select( '*', 'core_attachments', array( array( 'attach_id IN(?)', $internal ), array( 'attach_is_image=1' ) ), 'attach_id ASC', $limit ) as $row )
@@ -1974,6 +1987,26 @@ class _Records extends \IPS\Content\Item implements
 	public static function supportsReviews( \IPS\Member $member = NULL, \IPS\Node\Model $container = NULL )
 	{
 		return parent::supportsReviews() and static::database()->options['reviews'];
+	}
+	
+	/**
+	 * Ensure there aren't any collisions with page slugs
+	 *
+	 * @param   string  $path   Path to check
+	 * @return  boolean
+	 */
+	static public function isFurlCollision( $slug )
+	{
+		try
+		{
+			\IPS\Db::i()->select( 'fpage_id', 'frontpage_fpages', array( 'fpage_seo_name=?', \IPS\Http\Url\Friendly::seoTitle( $slug ) ) )->first();
+			
+			return TRUE;
+		}
+		catch( \UnderflowException $e )
+		{
+			return FALSE;
+		}
 	}
 	
 	/* !Relational Fields */
@@ -2803,7 +2836,7 @@ class _Records extends \IPS\Content\Item implements
 	/**
 	 * Log for deletion later
 	 *
-	 * @param	\IPS\Member|NULL 	$member	The member or NULL for currently logged in
+	 * @param	\IPS\Member|NULL 	$member	The member, NULL for currently logged in, or FALSE for no member
 	 * @return	void
 	 */
 	public function logDelete( $member = NULL )
@@ -2881,13 +2914,18 @@ class _Records extends \IPS\Content\Item implements
 			return FALSE;
 		}
 
+		/* This prevents auto share and notifications being sent out */
 		try
 		{
-			\IPS\frontpage\Fpages\Fpage::loadByDatabaseId( static::database()->id );
+			$page = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( static::database()->id );
+			if ( !$page->can( 'view', $member ) )
+			{
+				return FALSE;
+			}
 		}
 		catch( \OutOfRangeException $e )
 		{
-			/* This prevents auto share and notifications being sent out */
+			/* If the database isn't assigned to a fpage they won't be able to view the record */
 			return FALSE;
 		}
 
