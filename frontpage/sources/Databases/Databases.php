@@ -13,7 +13,7 @@
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     20 MAR 2020
+ * @Updated     21 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -781,7 +781,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 			if( $permissions['perm_view'] != '*' )
 			{
-				$pageViewPermissions = explode( ',', $permissions['perm_view'] );
+				$fpageViewPermissions = explode( ',', $permissions['perm_view'] );
 
 				foreach ( \IPS\Member\Group::groups() as $group )
 				{
