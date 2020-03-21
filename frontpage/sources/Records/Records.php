@@ -261,7 +261,7 @@ class _Records extends \IPS\Content\Item implements
 	public static function loadFromUrl( \IPS\Http\Url $url )
 	{
 		/* First, make sure the PAGE matches */
-		$page = \IPS\frontpage\Pages\Page::loadFromUrl( $url );
+		$fpage = \IPS\frontpage\Pages\Page::loadFromUrl( $url );
 
 		if( $fpage->_id != static::database()->fpage_id )
 		{
@@ -2917,8 +2917,8 @@ class _Records extends \IPS\Content\Item implements
 		/* This prevents auto share and notifications being sent out */
 		try
 		{
-			$page = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( static::database()->id );
-			if ( !$page->can( 'view', $member ) )
+			$fpage = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( static::database()->id );
+			if ( !$fpage->can( 'view', $member ) )
 			{
 				return FALSE;
 			}
