@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.4+
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.4 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     21 MAR 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -143,6 +143,12 @@ class _Review extends \IPS\Content\Review implements \IPS\Content\EditHistory, \
 
 		$review->database_id = static::$customDatabaseId;
 		$review->save();
+
+		/* Have to do these AFTER database id is set */
+		$ratingField = $item::$databaseColumnMap['rating'];
+
+		$review->item()->$ratingField = $review->item()->averageReviewRating() ?: 0;
+		$review->item()->save();
 		
 		return $review;
 	}
@@ -176,8 +182,10 @@ class _Review extends \IPS\Content\Review implements \IPS\Content\EditHistory, \
 	 *
 	 * @param	string|NULL		$action		Action
 	 * @return	\IPS\Http\Url
+	 * @throws	\BadMethodCallException
+	 * @throws	\IPS\Http\Url\Exception
 	 */
-	public function url( $action=NULL )
+	public function url( $action='find' )
 	{
 		$url = parent::url( $action );
 
