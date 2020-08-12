@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief		Records Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.4 Stable
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     21 MAR 2020
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -261,7 +261,7 @@ class _Records extends \IPS\Content\Item implements
 	public static function loadFromUrl( \IPS\Http\Url $url )
 	{
 		/* First, make sure the PAGE matches */
-		$fpage = \IPS\frontpage\Pages\Page::loadFromUrl( $url );
+		$fpage = \IPS\frontpage\Fpages\Fpage::loadFromUrl( $url );
 
 		if( $fpage->_id != static::database()->fpage_id )
 		{
@@ -1476,7 +1476,7 @@ class _Records extends \IPS\Content\Item implements
 		$idColumn = static::$databaseColumnId;
 		$attachments = array();
 		
-		$internal = \IPS\Db::i()->select( 'attachment_id', 'core_attachments_map', array( '(location_key=? OR location_key=?) and id1=? and id3=?', 'frontpage_Records', 'frontpage_Records' . static::$customDatabaseId, $this->$idColumn, static::$customDatabaseId ) );
+		$internal = \IPS\Db::i()->select( 'attachment_id', 'core_attachments_map', array( '(location_key=? OR location_key=?) and id1=? and id3=?', ''frontpage_Records', ''frontpage_Records' . static::$customDatabaseId, $this->$idColumn, static::$customDatabaseId ) );
 		
 		/* Attachments */
 		foreach( \IPS\Db::i()->select( '*', 'core_attachments', array( array( 'attach_id IN(?)', $internal ), array( 'attach_is_image=1' ) ), 'attach_id ASC', $limit ) as $row )
