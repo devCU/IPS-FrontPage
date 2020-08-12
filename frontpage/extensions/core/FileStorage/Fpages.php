@@ -65,7 +65,7 @@ class _Fpages
 	 */
 	public function move( $offset, $storageConfiguration, $oldConfiguration=NULL )
 	{
-		/* Just remove fpage object data so it will rebuild on the next iteration */
+		/* Just remove content object data so it will rebuild on the next iteration */
 		\IPS\frontpage\Fpages\Fpage::deleteCachedIncludes( NULL, $oldConfiguration );
 		
 		throw new \UnderflowException;
@@ -79,7 +79,7 @@ class _Fpages
 	 */
 	public function fixUrls( $offset )
 	{
-		/* Just remove fpage object data so it will rebuild on the next iteration */
+		/* Just remove content object data so it will rebuild on the next iteration */
 		\IPS\frontpage\Fpages\Fpage::deleteCachedIncludes();
 		
 		throw new \UnderflowException;
