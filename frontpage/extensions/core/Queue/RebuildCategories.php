@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief		Background Task: Rebuild database categories
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -30,7 +30,7 @@
  *    along with this program.  If not, see http://www.gnu.org/licenses/
  */
 
-namespace IPS\cms\extensions\core\Queue;
+namespace IPS\frontpage\extensions\core\Queue;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
@@ -64,7 +64,7 @@ class _RebuildCategories
 
 		try
 		{
-			$data['count'] = (int) \IPS\Db::i()->select( 'COUNT(*)', 'cms_database_categories' )->first();
+			$data['count'] = (int) \IPS\Db::i()->select( 'COUNT(*)', 'frontpage_database_categories' )->first();
 		}
 		catch( \Exception $ex )
 		{
@@ -92,10 +92,10 @@ class _RebuildCategories
 		$classname  = $data['class'];
 		$databaseId = mb_substr( $classname, 18 );
 		
-		$class  = '\IPS\cms\Categories' . $databaseId;
+		$class  = '\IPS\frontpage\Categories' . $databaseId;
 		$parsed	= 0;
 		
-		foreach ( \IPS\Db::i()->select( '*', 'cms_database_categories', array( 'category_database_id=?', $databaseId ), 'category_id asc', array( $offset, $this->rebuild ) ) as $row )
+		foreach ( \IPS\Db::i()->select( '*', 'frontpage_database_categories', array( 'category_database_id=?', $databaseId ), 'category_id asc', array( $offset, $this->rebuild ) ) as $row )
 		{
 			try
 			{
@@ -130,7 +130,7 @@ class _RebuildCategories
 		$classname  = $data['class'];
 		$databaseId = mb_substr( $classname, 18 );
 		
-		$title = ( \IPS\Application::appIsEnabled('cms') ) ? \IPS\cms\Databases::load( $databaseId )->_title : 'Database #' . $databaseId;
-		return array( 'text' => \IPS\Member::loggedIn()->language()->addToStack( 'rebuilding_cms_database_categories', FALSE, array( 'sprintf' => array( $title ) ) ), 'complete' => $data['count'] ? ( round( 100 / $data['count'] * $offset, 2 ) ) : 100 );
+		$title = ( \IPS\Application::appIsEnabled('frontpage') ) ? \IPS\frontpage\Databases::load( $databaseId )->_title : 'Database #' . $databaseId;
+		return array( 'text' => \IPS\Member::loggedIn()->language()->addToStack( 'rebuilding_frontpage_database_categories', FALSE, array( 'sprintf' => array( $title ) ) ), 'complete' => $data['count'] ? ( round( 100 / $data['count'] * $offset, 2 ) ) : 100 );
 	}	
 }

@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief		Background Task: Rebuild database editor fields
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -30,7 +30,7 @@
  *    along with this program.  If not, see http://www.gnu.org/licenses/
  */
 
-namespace IPS\cms\extensions\core\Queue;
+namespace IPS\frontpage\extensions\core\Queue;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
 if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
@@ -63,7 +63,7 @@ class _RebuildEditorFields
 
 		try
 		{
-			$data['count'] = (int) \IPS\Db::i()->select( 'MAX(primary_id_field)', 'cms_custom_database_' . $databaseId )->first();
+			$data['count'] = (int) \IPS\Db::i()->select( 'MAX(primary_id_field)', 'frontpage_custom_database_' . $databaseId )->first();
 		}
 		catch( \Exception $ex )
 		{
@@ -93,12 +93,12 @@ class _RebuildEditorFields
 		$fieldId    = $data['fieldId'];
 
 		$parsed	= 0;
-		$class  = '\IPS\cms\Records' . $databaseId;
+		$class  = '\IPS\frontpage\Records' . $databaseId;
 		$last   = NULL;
 		
-		if ( \IPS\Db::i()->checkForTable( 'cms_custom_database_' . $databaseId ) AND \IPS\Db::i()->checkForColumn( 'cms_custom_database_' . $databaseId, 'field_' . $fieldId ) )
+		if ( \IPS\Db::i()->checkForTable( 'frontpage_custom_database_' . $databaseId ) AND \IPS\Db::i()->checkForColumn( 'frontpage_custom_database_' . $databaseId, 'field_' . $fieldId ) )
 		{
-			foreach ( \IPS\Db::i()->select( '*', 'cms_custom_database_' . $databaseId, array( 'primary_id_field > ?', $offset ), 'primary_id_field asc', array( 0, $this->rebuild ) ) as $row )
+			foreach ( \IPS\Db::i()->select( '*', 'frontpage_custom_database_' . $databaseId, array( 'primary_id_field > ?', $offset ), 'primary_id_field asc', array( 0, $this->rebuild ) ) as $row )
 			{
 				$item = $class::constructFromData( $row );
 				$contentColumn = 'field_' . $fieldId;
@@ -137,7 +137,7 @@ class _RebuildEditorFields
 			
 				try
 				{
-					$item->$contentColumn	= \IPS\Text\LegacyParser::parseStatic( $item->$contentColumn, $member, $canUseHtml, 'cms_Records', $item->$idColumn, $data['fieldId'], $databaseId, isset( $classname::$itemClass ) ? $classname::$itemClass : \get_class( $item ) );
+					$item->$contentColumn	= \IPS\Text\LegacyParser::parseStatic( $item->$contentColumn, $member, $canUseHtml, 'frontpage_Records', $item->$idColumn, $data['fieldId'], $databaseId, isset( $classname::$itemClass ) ? $classname::$itemClass : \get_class( $item ) );
 				}
 				catch( \InvalidArgumentException $e )
 				{
@@ -178,6 +178,6 @@ class _RebuildEditorFields
 		$classname  = $data['class'];
 		$databaseId = mb_substr( $classname, 15 );
 				
-		return array( 'text' => \IPS\Member::loggedIn()->language()->addToStack('rebuilding_cms_database_records', FALSE, array( 'sprintf' => array( \IPS\cms\Databases::load( $databaseId )->_title ) ) ), 'complete' => $data['count'] ? ( round( 100 / $data['count'] * $offset, 2 ) ) : 100 );
+		return array( 'text' => \IPS\Member::loggedIn()->language()->addToStack('rebuilding_frontpage_database_records', FALSE, array( 'sprintf' => array( \IPS\frontpage\Databases::load( $databaseId )->_title ) ) ), 'complete' => $data['count'] ? ( round( 100 / $data['count'] * $offset, 2 ) ) : 100 );
 	}	
 }
