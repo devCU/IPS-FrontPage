@@ -1,8 +1,8 @@
 ![devCUHead](https://www.devcu.com/mediasrc/github-banner.png?V=1.0)
 
 [![License](https://img.shields.io/badge/License-GNUv3-important.svg)](https://github.com/devCU/IPS-FrontPage/blob/master/LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.4-ff69b4.svg)](https://www.devcu.com/devcu-tracker/)
-[![Build](https://img.shields.io/badge/Build-RC.1-yellow.svg)](https://www.devcu.com/devcu-tracker/)
+[![Version](https://img.shields.io/badge/Version-1.0.5-ff69b4.svg)](https://www.devcu.com/devcu-tracker/)
+[![Build](https://img.shields.io/badge/Build-Stable-yellow.svg)](https://www.devcu.com/devcu-tracker/)
 [![Status](https://img.shields.io/badge/Status-Stable-success.svg)](https://www.devcu.com/devcu-tracker/)
 [![Development](https://img.shields.io/badge/Development-Active-success.svg)](https://www.devcu.com/devcu-tracker/)
 [![Platform](https://img.shields.io/badge/Platform-IPS4.4+-blue.svg)](https://www.devcu.com/devcu-tracker/)
@@ -12,9 +12,9 @@
 	
 **Please support our Open Source Projects and keep this software free**
 
-- Patrons and Donators have access to Beta and Release version up to 2 weeks before the public
+- Donators have access to Beta and Release version up to 2 weeks before the public
 
-[![donate](https://www.devcu.com/mediasrc/patronize_devcu.png)](https://www.patreon.com/devcu/) [![donate](https://www.devcu.com/mediasrc/support_devcu.png?v=1)](https://www.devcu.com/clients/donations/)
+[![donate](https://www.devcu.com/mediasrc/support_devcu.png?v=1)](https://www.devcu.com/clients/donations/)
     
 <pre>
     .-"^`\                                        /`^"-.
@@ -26,7 +26,7 @@
  \  | \  . \ ;  |   Open Source Projects   || ; / .  / |  /
   '\_\ \\ \ \ \ |                          ||/ / / // /_/'
         \\ \ \ \|       IPS FrontPage      |/ / / //
-         `'-\_\_\          v 1.0.4         /_/_/-'`
+         `'-\_\_\          v 1.0.5         /_/_/-'`
                 '--------------------------'
 </pre>
 
@@ -49,10 +49,10 @@
 
 ## ** Updated Notes **
 
-03/20/20
+08/12/20
 
-- May 1st Patron release
-- 1.0.4 RC 1 Stable
+- Invision Community Suite 4.4.10 FINAL
+- 1.05 Stable
 - Please report and issues, feature requests, or suggestions in Issues
 
 
