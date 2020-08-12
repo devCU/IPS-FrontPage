@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief       FrontPage Application Class
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.x
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.4 Stable
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     20 MAR 2020
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -261,7 +261,7 @@ class _Application extends \IPS\Application
 				'module_url'  => 'databases',
 				'controller'  => 'fields',
 				'do' 		  => 'manage&database_id=' . $database['id'],
-				'restriction' => 'cms_fields_manage',
+				'restriction' => 'frontpage_fields_manage',
 				'restriction_module' => 'databases'
 			);
 
@@ -416,7 +416,7 @@ class _Application extends \IPS\Application
 		$comment = 'IPS\frontpage\Records\Comment' . $database->id;
 		$container = 'IPS\frontpage\Categories' . $database->id;
 		
-		$link = (string) \IPS\Http\Url::external('https://devcu.com/docs/fpage_docs');
+		$link = (string) \IPS\Http\Url::dcu('docs/frontpage_docs');
 
 		$content = <<<EOF
 <p>Welcome to FrontPage</p>
@@ -448,8 +448,8 @@ EOF;
 		
 		/* Create the page */
 		$fpageValues = array(
-			'fpage_name'         => "Index",
-			'fpage_title'        => "FrontPage",
+			'fpage_name'         => "Articles",
+			'fpage_title'        => "Articles",
 			'fpage_seo_name'     => "index.html",
 			'fpage_folder_id'    => 0,
 			'fpage_ipb_wrapper'  => 1,
