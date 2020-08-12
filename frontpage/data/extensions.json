@@ -19,6 +19,7 @@
         "EditorLocations": {
             "Widgets": "IPS\\frontpage\\extensions\\core\\EditorLocations\\Widgets",
             "Records": "IPS\\frontpage\\extensions\\core\\EditorLocations\\Records",
+            "Supportersdirectory": "IPS\\frontpage\\extensions\\core\\EditorLocations\\Supportersdirectory",
             "BlockContent": "IPS\\frontpage\\extensions\\core\\EditorLocations\\BlockContent"
         },
         "CreateMenu": {

@@ -9,6 +9,14 @@
         "menu_style": "menu",
         "embeddable": false
     },
+    "Milestones": {
+        "class": "\\IPS\\Widget\\StaticCache",
+        "restrict": [],
+        "default_area": "",
+        "allow_reuse": false,
+        "menu_style": "menu",
+        "embeddable": true
+    },
     "Wysiwyg": {
         "class": "\\IPS\\Widget\\StaticCache",
         "restrict": [],

@@ -20,6 +20,12 @@
             "do": "",
             "restriction": "settings_manage"
         },
+        "logins": {
+            "tab": "frontpage",
+            "controller": "logins",
+            "do": "",
+            "restriction": "settings_manage"
+        },
         "advanced": {
             "tab": "frontpage",
             "controller": "advanced",
@@ -31,6 +37,12 @@
         "configure": {
             "tab": "frontpage",
             "controller": "configure",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "carousel": {
+            "tab": "frontpage",
+            "controller": "carousel",
             "do": "",
             "restriction": "settings_manage"
         }
@@ -59,6 +71,20 @@
         "databases": {
             "tab": "frontpage",
             "controller": "databases",
+            "do": "",
+            "restriction": "settings_manage"
+        }
+    },
+    "extras": {
+        "supporterssettings": {
+            "tab": "frontpage",
+            "controller": "supporterssettings",
+            "do": "",
+            "restriction": "settings_manage"
+        },
+        "supporters": {
+            "tab": "frontpage",
+            "controller": "supporters",
             "do": "",
             "restriction": "settings_manage"
         }

@@ -1,1 +1,8 @@
-{"application_title":"IPS FrontPage","app_author":"G Cornell for devCU","app_directory":"frontpage","app_protected":false,"app_website":{"data":{"scheme":"https","host":"devcu.com","port":null,"user":null,"pass":null,"path":null,"query":"","fragment":null},"queryString":[],"hiddenQueryString":[],"isInternal":false,"isFriendly":false},"app_update_check":{"data":{"scheme":"https","host":"updates.devcu.com","port":null,"user":null,"pass":null,"path":"\/ips\/frontpage\/appcheck.php","query":"","fragment":null},"queryString":[],"hiddenQueryString":[],"isInternal":false,"isFriendly":false}}
+{
+    "application_title": "DCU FrontPage",
+    "app_author": "G Cornell for devCU",
+    "app_directory": "frontpage",
+    "app_protected": 0,
+    "app_website": "https:\/\/devcu.com",
+    "app_update_check": "https:\/\/updates.devcu.com\/ips\/frontpage\/appcheck.php"
+}

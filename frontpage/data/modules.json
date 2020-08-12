@@ -19,11 +19,31 @@
         "databases": {
             "default_controller": "databases",
             "protected": 0
+        },
+        "extras": {
+            "default_controller": "supporters",
+            "protected": 0
         }
     },
     "front": {
         "fpages": {
             "default_controller": "fpage",
+            "protected": 0
+        },
+        "members": {
+            "default_controller": "rules",
+            "protected": 0
+        },
+        "system": {
+            "default_controller": "advsettings",
+            "protected": 0
+        },
+        "support": {
+            "default_controller": "documentation",
+            "protected": 0
+        },
+        "team": {
+            "default_controller": "team",
             "protected": 0
         },
         "database": {

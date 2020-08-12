@@ -518,6 +518,267 @@
             }
         }
     },
+    "frontpage_supporters_groups": {
+        "name": "frontpage_supporters_groups",
+        "columns": {
+            "group_id": {
+                "allow_null": false,
+                "auto_increment": true,
+                "binary": false,
+                "comment": "ID Number",
+                "decimals": null,
+                "default": null,
+                "length": 8,
+                "name": "group_id",
+                "type": "MEDIUMINT",
+                "unsigned": true,
+                "values": [],
+                "zerofill": false
+            },
+            "group_name": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "",
+                "decimals": null,
+                "default": "",
+                "length": 255,
+                "name": "group_name",
+                "type": "VARCHAR",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            },
+            "group_button": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "",
+                "decimals": null,
+                "default": "0",
+                "length": 1,
+                "name": "group_button",
+                "type": "TINYINT",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            },
+            "group_button_text": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "",
+                "decimals": null,
+                "default": "0",
+                "length": 64,
+                "name": "group_button_text",
+                "type": "VARCHAR",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            },
+            "group_button_url": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "",
+                "decimals": null,
+                "default": "0",
+                "length": 255,
+                "name": "group_button_url",
+                "type": "VARCHAR",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            },
+            "group_template": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "",
+                "decimals": null,
+                "default": "",
+                "length": 255,
+                "name": "group_template",
+                "type": "VARCHAR",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            },
+            "group_position": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "",
+                "decimals": null,
+                "default": "0",
+                "length": 8,
+                "name": "group_position",
+                "type": "MEDIUMINT",
+                "unsigned": true,
+                "values": [],
+                "zerofill": false
+            }
+        },
+        "indexes": {
+            "PRIMARY": {
+                "type": "primary",
+                "name": "PRIMARY",
+                "length": [
+                    null
+                ],
+                "columns": [
+                    "group_id"
+                ]
+            }
+        },
+        "inserts": [
+            {
+                "group_id": 1,
+                "group_name": "Subscriber",
+                "group_template": "layout_supporters_row",
+                "group_position": 1
+            },
+            {
+                "group_id": 2,
+                "group_name": "Supporter",
+                "group_template": "layout_supporters_row",
+                "group_position": 2
+            }
+        ],
+        "comment": "",
+        "reporting": "count"
+    },
+    "frontpage_supporters": {
+        "name": "frontpage_supporters",
+        "columns": {
+            "supporter_id": {
+                "allow_null": false,
+                "auto_increment": true,
+                "binary": false,
+                "comment": "Primary ID",
+                "decimals": null,
+                "default": null,
+                "length": 20,
+                "name": "supporter_id",
+                "type": "BIGINT",
+                "unsigned": true,
+                "values": [],
+                "zerofill": false
+            },
+            "supporter_type": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "Record is for member (m) or group (g)",
+                "decimals": null,
+                "default": "m",
+                "length": 0,
+                "name": "supporter_type",
+                "type": "ENUM",
+                "unsigned": false,
+                "values": [
+                    "m",
+                    "g"
+                ],
+                "zerofill": false
+            },
+            "supporter_type_id": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "Member or group ID",
+                "decimals": null,
+                "default": "0",
+                "length": 20,
+                "name": "supporter_type_id",
+                "type": "BIGINT",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            },
+            "supporter_group_id": {
+                "allow_null": false,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "The group to display in (core_supporters_group.group_id)",
+                "decimals": null,
+                "default": "0",
+                "length": 8,
+                "name": "supporter_group_id",
+                "type": "MEDIUMINT",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            },
+            "supporter_position": {
+                "allow_null": true,
+                "auto_increment": false,
+                "binary": false,
+                "comment": "Position",
+                "decimals": null,
+                "default": null,
+                "length": 20,
+                "name": "supporter_position",
+                "type": "BIGINT",
+                "unsigned": false,
+                "values": [],
+                "zerofill": false
+            }
+        },
+        "indexes": {
+            "PRIMARY": {
+                "type": "primary",
+                "name": "PRIMARY",
+                "length": [
+                    null
+                ],
+                "columns": [
+                    "supporter_id"
+                ]
+            },
+            "supporter_type": {
+                "type": "unique",
+                "name": "supporter_type",
+                "length": [
+                    null,
+                    null
+                ],
+                "columns": [
+                    "supporter_type",
+                    "supporter_type_id"
+                ]
+            },
+            "supporter_group_id": {
+                "type": "key",
+                "name": "lsupporter_group_id",
+                "columns": [
+                    "supporter_group_id"
+                ],
+                "length": [
+                    null
+                ]
+            }
+        },
+        "inserts": [
+            {
+                "leader_id": null,
+                "leader_type": "g",
+                "leader_type_id": 4,
+                "leader_group_id": 1,
+                "leader_position": 1
+            },
+            {
+                "leader_id": null,
+                "leader_type": "g",
+                "leader_type_id": 6,
+                "leader_group_id": 2,
+                "leader_position": 2
+            }
+        ],
+        "comment": "",
+        "reporting": "count"
+    },
     "frontpage_databases": {
         "name": "frontpage_databases",
         "columns": {

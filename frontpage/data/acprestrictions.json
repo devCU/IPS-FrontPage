@@ -1,0 +1,73 @@
+{
+    "dashboard": {
+        "overview": {
+            "overview_manage": "overview_manage",
+            "overview_permissions": "overview_permissions"
+        }
+    },
+    "fpages": {
+        "fpages": {
+            "fpage_add": "fpage_add",
+            "fpage_edit": "fpage_edit",
+            "fpage_delete": "fpage_delete",
+            "fpage_manage": "fpage_manage",
+            "fpage_permissions": "fpage_permissions"
+        }
+    },
+    "templates": {
+        "templates": {
+            "template_manage": "template_manage",
+            "template_add_edit": "template_add_edit",
+            "template_delete": "template_delete"
+        },
+        "blocks": {
+            "block_manage": "block_manage",
+            "block_add": "block_add",
+            "block_edit": "block_edit",
+            "block_delete": "block_delete",
+            "block_permissions": "block_permissions"
+        }
+    },
+    "themes": {
+        "themes": {
+            "themes_manage": "themes_manage",
+            "themes_add": "themes_add",
+            "themes_edit": "themes_edit",
+            "themes_delete": "themes_delete"
+        },
+        "media": {
+            "media_manage": "media_manage",
+            "media_add": "media_add",
+            "media_edit": "media_edit",
+            "media_delete": "media_delete"
+        }
+    },
+    "databases": {
+        "databases": {
+            "databases_manage": "databases_manage",
+            "databases_edit": "databases_edit",
+            "databases_delete": "databases_delete",
+            "databases_add": "databases_add"
+        },
+        "frontpage_fields": {
+            "frontpage_fields_manage": "frontpage_fields_manage",
+            "frontpage_fields_add": "frontpage_fields_add",
+            "frontpage_fields_edit": "frontpage_fields_edit",
+            "frontpage_fields_delete": "frontpage_fields_delete"
+        },
+        "categories": {
+            "categories_manage": "categories_manage",
+            "categories_add": "categories_add",
+            "categories_edit": "categories_edit",
+            "categories_massManageContent": "categories_massManageContent",
+            "categories_delete": "categories_delete",
+            "categories_permissions": "categories_permissions"
+        },
+        "records": {
+            "records_manage": "records_manage",
+            "records_add": "records_add",
+            "records_edit": "records_edit",
+            "records_delete": "records_delete"
+        }
+    }
+}

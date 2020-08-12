@@ -1,5 +1,13 @@
 [
     {
+        "key": "allow_forgot_pass",
+        "default": "normal"
+    },
+    {
+        "key": "allow_forgot_pass_target",
+        "default": ""
+    },
+    {
         "key": "fpage_extension",
         "default": ".html"
     },
@@ -54,6 +62,90 @@
     {
         "key": "sitemap_fpages_count",
         "default": "-1"
+    },
+    {
+        "key": "frontpage_header_title",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header_tagline",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header_background",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header2_title",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header2_tagline",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header2_background",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header3_title",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header3_tagline",
+        "default": ""
+    },
+    {
+        "key": "frontpage_header3_background",
+        "default": ""
+    },
+    {
+        "key": "frontpage_nav_title",
+        "default": ""
+    },
+    {
+        "key": "frontpage_nav_tagline",
+        "default": ""
+    },
+    {
+        "key": "frontpage_nav_menu",
+        "default": ""
+    },
+    {
+        "key": "frontpage_display_link_position",
+        "default": "tab"
+    },
+    {
+        "key": "frontpage_redirect_enable",
+        "default": "0"
+    },
+    {
+        "key": "frontpage_redirect_url",
+        "default": ""
+    },
+    {
+        "key": "fp_strict_private_enabled",
+        "default": "0"
+    },
+    {
+        "key": "frontpage_display_settings_enabled",
+        "default": "0"
+    },
+    {
+        "key": "frontpage_extras_supporters_enable",
+        "default": "0"
+    },
+    {
+        "key": "frontpage_extras_supporters_groups",
+        "default": ""
+    },
+    {
+        "key": "frontpage_extras_supporters_bypass",
+        "default": "0"
+    },
+    {
+        "key": "frontpage_extras_supporters_featured",
+        "default": "0"
     },
     {
         "key": "sitemap_fpages_priority",

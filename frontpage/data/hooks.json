@@ -47,8 +47,20 @@
         "type": "C",
         "class": "\\IPS\\Http\\Url\\Friendly"
     },
+    "RedirectUrl": {
+        "type": "C",
+        "class": "\\IPS\\Login\\Success"
+    },
     "Topic": {
         "type": "C",
         "class": "\\IPS\\forums\\Topic"
+    },
+    "DisplaySettingsTab": {
+        "type": "S",
+        "class": "\\IPS\\Theme\\class_core_front_system"
+    },
+    "DisplaySettingsTabFunction": {
+        "type": "C",
+        "class": "\\IPS\\core\\modules\\front\\system\\settings"
     }
 }
