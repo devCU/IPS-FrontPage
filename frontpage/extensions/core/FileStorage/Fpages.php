@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief		File Storage Extension: Fpage
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -65,7 +65,7 @@ class _Fpages
 	 */
 	public function move( $offset, $storageConfiguration, $oldConfiguration=NULL )
 	{
-		/* Just remove content object data so it will rebuild on the next iteration */
+		/* Just remove fpage object data so it will rebuild on the next iteration */
 		\IPS\frontpage\Fpages\Fpage::deleteCachedIncludes( NULL, $oldConfiguration );
 		
 		throw new \UnderflowException;
@@ -79,7 +79,7 @@ class _Fpages
 	 */
 	public function fixUrls( $offset )
 	{
-		/* Just remove content object data so it will rebuild on the next iteration */
+		/* Just remove fpage object data so it will rebuild on the next iteration */
 		\IPS\frontpage\Fpages\Fpage::deleteCachedIncludes();
 		
 		throw new \UnderflowException;
