@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief		Media Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.4 Stable
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     20 MAR 2020
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -264,7 +264,7 @@ class _Media extends \IPS\Node\Model
 		$buttons['key'] = array(
 			'icon'	=> 'file-code-o',
 			'title'	=> 'frontpage_media_key',
-			'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=themes&controller=media&do=key&id=' . $this->id ),
+			'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=media&do=key&id=' . $this->id ),
 			'data'  => array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('frontpage_media_key') )
 		);
 
@@ -273,7 +273,7 @@ class _Media extends \IPS\Node\Model
 			$buttons['preview'] = array(
 				'icon'	=> 'search',
 				'title'	=> 'frontpage_media_preview',
-				'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=themes&controller=media&do=preview&id=' . $this->id ),
+				'link'	=> \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=media&do=preview&id=' . $this->id ),
 				'data'  => array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('frontpage_media_preview') )
 			);
 		}
