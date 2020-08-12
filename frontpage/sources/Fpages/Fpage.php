@@ -1,16 +1,19 @@
 <?php
 /**
+ *     Support this Project... Keep it free! Become an Open Source Patron
+ *                      https://www.devcu.com/donate/
+ *
  * @brief		FrontPage Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.4 Stable
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     20 MAR 2020
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -980,7 +983,6 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 		}
 		
 		\IPS\Data\Store::i()->fpages_fpage_urls = $store;
-
 		\IPS\Member::clearCreateMenu();
 	}
 	
