@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief		Support Fpages Databases in sitemaps
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -48,8 +48,9 @@ class _Databases
 	 * @brief	Recommended Settings
 	 */
 	public $recommendedSettings = array(
-		'sitemap_databases_count'	 => -1,
-		'sitemap_databases_priority' => 1
+		'sitemap_databases_include'		=> true,
+		'sitemap_databases_count'		=> -1,
+		'sitemap_databases_priority'	=> 1
 	);
 	
 	/**
@@ -60,6 +61,7 @@ class _Databases
 	public function settings()
 	{
 		return array(
+			'sitemap_databases_include'	=> new \IPS\Helpers\Form\YesNo( "sitemap_databases_include", \IPS\Settings::i()->sitemap_databases_count != 0, FALSE, array( 'togglesOn' => array( "sitemap_databases_count", "sitemap_databases_priority" ) ), NULL, NULL, NULL, "sitemap_databases_include" ),
 			'sitemap_databases_count'	 => new \IPS\Helpers\Form\Number( 'sitemap_databases_count', \IPS\Settings::i()->sitemap_databases_count, FALSE, array( 'min' => '-1', 'unlimited' => '-1' ), NULL, NULL, NULL, 'sitemap_databases_count' ),
 			'sitemap_databases_priority' => new \IPS\Helpers\Form\Select( 'sitemap_databases_priority', \IPS\Settings::i()->sitemap_databases_priority, FALSE, array( 'options' => \IPS\Sitemap::$priorities, 'unlimited' => '-1', 'unlimitedLang' => 'sitemap_dont_include' ), NULL, NULL, NULL, 'sitemap_databases_priority' )
 		);
@@ -79,7 +81,7 @@ class _Databases
 		}
 		else
 		{
-			\IPS\Settings::i()->changeValues( array( 'sitemap_databases_count' => $values['sitemap_databases_count'], 'sitemap_databases_priority' => $values['sitemap_databases_priority'] ) );
+			\IPS\Settings::i()->changeValues( array( 'sitemap_databases_count' => $values['sitemap_databases_include'] ? $values['sitemap_databases_count'] : 0, 'sitemap_databases_priority' => $values['sitemap_databases_priority'] ) );
 		}
 	}
 	
@@ -90,6 +92,12 @@ class _Databases
 	 */
 	public function getFilenames()
 	{
+		/* Are we including? */
+		if ( ! \IPS\Settings::i()->sitemap_databases_count )
+		{
+			return array();
+		}
+
 		$files = array();
 		
 		/* Check that guests can access the content at all */
@@ -186,7 +194,7 @@ class _Databases
 			foreach ( $select as $node )
 			{
 				/* We only want nodes we can see, and that have actual content inside */
-				if( $node->url() !== NULL and $node->can( 'view', new \IPS\Member ) and $node->getContentItemCount() )
+				if( $node->url() !== NULL and $node->can( 'view', new \IPS\Member ) and ( $node->hasChildren() OR ( $node->show_records and $node->getContentItemCount() ) ) )
 				{
 					$data = array( 'url' => $node->url(), 'lastmod' => $node->getLastCommentTime() );
 					

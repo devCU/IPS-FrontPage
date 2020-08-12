@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                      https://www.devcu.com/donate/
  *
  * @brief		Support Fpages in sitemaps
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.4.10 FINAL
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     12 AUG 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -48,8 +48,9 @@ class _Fpages
 	 * @brief	Recommended Settings
 	 */
 	public $recommendedSettings = array(
-		'sitemap_fpages_count'	 => -1,
-		'sitemap_fpages_priority' => 1
+		'sitemap_pages_include'		=> true,
+		'sitemap_pages_count'		=> -1,
+		'sitemap_pages_priority'	=> 1
 	);
 	
 	/**
@@ -60,6 +61,7 @@ class _Fpages
 	public function settings()
 	{
 		return array(
+			'sitemap_fpages_include'	=> new \IPS\Helpers\Form\YesNo( "sitemap_fpages_include", \IPS\Settings::i()->sitemap_fpages_count != 0, FALSE, array( 'togglesOn' => array( "sitemap_fpages_count", "sitemap_fpages_priority" ) ), NULL, NULL, NULL, "sitemap_fpages_include" ),
 			'sitemap_fpages_count'	 => new \IPS\Helpers\Form\Number( 'sitemap_fpages_count', \IPS\Settings::i()->sitemap_fpages_count, FALSE, array( 'min' => '-1', 'unlimited' => '-1' ), NULL, NULL, NULL, 'sitemap_fpages_count' ),
 			'sitemap_fpages_priority' => new \IPS\Helpers\Form\Select( 'sitemap_fpages_priority', \IPS\Settings::i()->sitemap_fpages_priority, FALSE, array( 'options' => \IPS\Sitemap::$priorities, 'unlimited' => '-1', 'unlimitedLang' => 'sitemap_dont_include' ), NULL, NULL, NULL, 'sitemap_fpages_priority' )
 		);
@@ -79,7 +81,7 @@ class _Fpages
 		}
 		else
 		{
-			\IPS\Settings::i()->changeValues( array( 'sitemap_fpages_count' => $values['sitemap_fpages_count'], 'sitemap_fpages_priority' => $values['sitemap_fpages_priority'] ) );
+				\IPS\Settings::i()->changeValues( array( 'sitemap_fpages_count' => $values['sitemap_fpages_include'] ? $values['sitemap_fpages_count'] : 0, 'sitemap_fpages_priority' => $values['sitemap_fpages_priority'] ) );
 		}
 	}
 	
@@ -90,6 +92,12 @@ class _Fpages
 	 */
 	public function getFilenames()
 	{
+		/* Are we even including? */
+		if( \IPS\Settings::i()->sitemap_fpages_count == 0 )
+		{
+			return array();
+		}
+
 		$files  = array();
 		$class  = '\IPS\frontpage\Fpages\Fpage';
 		$count  = 0;
@@ -166,8 +174,9 @@ class _Fpages
 			if ( $priority !== -1 )
 			{
 				$data['priority'] = $priority;
-				$entries[] = $data;
 			}
+
+			$entries[] = $data;
 		}
 
 		$sitemap->buildSitemapFile( $filename, $entries );
