@@ -80,11 +80,11 @@ try
 		\IPS\Output::i()->error( 'no_module_permission', '2T279/3', 404, '' ); 
 	}
 		
-	$headers = array_merge( \IPS\Output::getCacheHeaders( time(), 360 ), array( "Content-Disposition" => \IPS\Output::getContentDisposition( 'attachment', $file->originalFilename ), "X-Content-Type-Options" => "nosniff" ) );
+	$headers = array_merge( \IPS\Output::getCacheHeaders( time(), 360 ), array( "Content-Disposition" => \IPS\Output::getContentDisposition( 'attachment', \IPS\Request::i()->file ), "X-Content-Type-Options" => "nosniff" ) );
 	
 	/* Send headers and print file */
 	\IPS\Output::i()->sendStatusCodeHeader( 200 );
-	\IPS\Output::i()->sendHeader( "Content-type: " . \IPS\File::getMimeType( $file->originalFilename ) . ";charset=UTF-8" );
+	\IPS\Output::i()->sendHeader( "Content-type: " . \IPS\File::getMimeType( \IPS\Request::i()->file ) . ";charset=UTF-8" );
 
 	foreach( $headers as $key => $header )
 	{
