@@ -52,7 +52,7 @@
 08/12/20
 
 - Invision Community Suite 4.4.10 FINAL
-- 1.05 Stable
+- 1.0.5 Stable
 - Please report and issues, feature requests, or suggestions in Issues
 
 
