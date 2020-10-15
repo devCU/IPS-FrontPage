@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Databases Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -182,7 +182,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	/**
 	 * @brief	Fpage title
 	 */
-	protected static $fpageTitle = NULL;
+	protected $fpageTitle = NULL;
 	
 	/**
 	 * Return all databases
@@ -257,6 +257,41 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 		$obj->preLoadWords();
 
 		return $obj;
+	}
+	
+		
+	/**
+	 * Can this database accept RSS imports? 
+	 *
+	 * @return boolean
+	 */
+	public function canImportRss(): bool
+	{
+		if ( ! $this->page_id )
+		{
+			return FALSE;
+		}
+		
+		$fieldsClass = '\IPS\frontpage\Fields' . $this->id;
+		
+		try
+		{
+			if ( ! \in_array( mb_ucfirst( $fieldsClass::load( $this->field_title )->type ), array( 'Text', 'TextArea', 'Editor' ) ) )
+			{
+				return FALSE;
+			}
+			
+			if ( ! \in_array( mb_ucfirst( $fieldsClass::load( $this->field_content )->type ), array( 'TextArea', 'Editor' ) ) )
+			{
+				return FALSE;
+			}
+		}
+		catch( \Exception $e )
+		{
+			return FALSE;
+		}
+		
+		return TRUE;
 	}
 
 	/**
@@ -336,7 +371,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 				}
 				else
 				{
-					$changes[] = "DROP KEY" . \IPS\Db::i()->escape_string( $key );
+					$changes[] = "DROP KEY `" . \IPS\Db::i()->escape_string( $key ) . "`";
 				}
 
 				$changes[] =  \IPS\Db::i()->buildIndex( $tableName, $data );
@@ -718,23 +753,23 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	public function fpageTitle()
 	{
-		if ( static::$fpageTitle === NULL )
+		if ( $fpageTitle === NULL )
 		{
 			if ( $this->use_as_fpage_title )
 			{ 
-				static::$fpageTitle = $this->_title;
+				$fpageTitle = $this->_title;
 			}
 			else
 			{
 				try
 				{
-					static::$fpageTitle = \IPS\frontpage\Fpages\Fpage::load( $this->fpage_id )->getHtmlTitle();
+					$fpageTitle = \IPS\frontpage\Fpages\Fpage::load( $this->fpage_id )->getHtmlTitle();
 				}
 				catch( \Exception $e ) { }
 			}
 		}
 		
-		return static::$fpageTitle;
+		return $fpageTitle;
 	}
 	
 	/**
@@ -1168,5 +1203,53 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	public static function getDatabaseDataFromStore()
 	{
 		return static::getStore();
+	}
+	
+	/**
+	 * Get output for API
+	 *
+	 * @param	\IPS\Member|NULL	$authorizedMember	The member making the API request or NULL for API Key / client_credentials
+	 * @return	array
+	 * @apiresponse			int					id				ID number
+	 * @apiresponse			string				name			Name
+	 * @apiresponse			bool					useCategories	If this database uses categories
+	 * @clientapiresponse	[\IPS\frontpage\Fields]	fields			The fields
+	 * @apiresponse			string				url				URL
+	 * @clientapiresponse	object|null			permissions		Node permissions
+	 */
+	public function apiOutput( \IPS\Member $authorizedMember = NULL )
+	{
+		$return = array(
+			'id'			=> $this->id,
+			'name'			=> $this->_title,
+			'useCategories'	=> (bool) $this->use_categories,
+		);
+		
+		if ( $authorizedMember === NULL )
+		{
+			$return['fields'] = array();
+			$fieldsClass = '\IPS\frontpage\Fields' . $this->id;
+			foreach ( $fieldsClass::roots() as $field )
+			{
+				$return['fields'][] = $field->apiOutput( $authorizedMember );
+			}
+		}
+		
+		try
+		{
+			$pagePath   = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $this->id )->full_path;
+			$return['url'] = (string) \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $fpagePath, 'front', 'content_fpage_path' );
+		}
+		catch( \OutOfRangeException $ex )
+		{
+			$return['url'] = NULL;		
+		}
+
+		if( $authorizedMember === NULL )
+		{
+			$return['permissions']	= \in_array( 'IPS\Node\Permissions', class_implements( \get_class( $this ) ) ) ? $this->permissions() : NULL;
+		}
+		
+		return $return;
 	}
 }

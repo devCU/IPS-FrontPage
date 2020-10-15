@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Database Dispatcher
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -193,27 +193,7 @@ class _Dispatcher extends \IPS\Dispatcher
 			$path = '';
 		}
 	
-		/* Have a bash at pagination as it's not like we've much else to do */
-		$stripped = \IPS\Http\Url\Friendly::stripFpageComponent( '/' . trim( $path, '/' ) . '/' );
-
-		if ( trim( $path, '/' ) != trim( $stripped, '/' ) )
-		{
-			if ( $stripped !== '/' )
-			{
-				$fpageStuff = str_replace( ltrim( $stripped, '/' ), '', $path );
-			}
-			else
-			{
-				$fpageStuff = $path;
-			}
-			
-			$bomb = explode( '/', $fpageStuff );
-			if ( ! empty( $bomb[1] ) )
-			{
-				\IPS\Request::i()->fpage = $bomb[1];
-				$path = trim( $stripped, '/' );
-			}
-		}
+		list( $path, $pageNumber ) = \IPS\frontpage\Fpages\Fpage::getStrippedFpagePath( $path );
 		
 		$this->databaseId = $database->id;
 
