@@ -5,10 +5,10 @@
 [![Build](https://img.shields.io/badge/Build-Stable-yellow.svg)](https://www.devcu.com/devcu-tracker/)
 [![Status](https://img.shields.io/badge/Status-Stable-success.svg)](https://www.devcu.com/devcu-tracker/)
 [![Development](https://img.shields.io/badge/Development-Active-success.svg)](https://www.devcu.com/devcu-tracker/)
-[![Platform](https://img.shields.io/badge/Platform-IPS4.4+-blue.svg)](https://www.devcu.com/devcu-tracker/)
+[![Platform](https://img.shields.io/badge/Platform-IPS4.5x-blue.svg)](https://www.devcu.com/devcu-tracker/)
 [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/devCU/IPS-FrontPage/master.svg)](https://www.devcu.com/devcu-tracker/)
 
-## ** Become a Patron/Supporter of devCU **
+## ** Become a Supporter of devCU **
 	
 **Please support our Open Source Projects and keep this software free**
 
@@ -49,9 +49,9 @@
 
 ## ** Updated Notes **
 
-08/12/20
+10/14/20
 
-- Invision Community Suite 4.4.10 FINAL
+- Updated for Invision Community Suite 4.5x FINAL
 - 1.0.5 Stable
 - Please report and issues, feature requests, or suggestions in Issues
 
