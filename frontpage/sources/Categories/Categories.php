@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Categories Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -279,16 +279,17 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 * @param	string|NULL			$permissionCheck	The permission key to check for or NULl to not check permissions
 	 * @param	\IPS\Member|NULL	$member				The member to check permissions for or NULL for the currently logged in member
 	 * @param	mixed				$where				Additional WHERE clause
+	 * @param	array|NULL			$limit				Limit/offset to use, or NULL for no limit (default)
 	 * @return	array
 	 */
-	public static function roots( $permissionCheck='view', $member=NULL, $where=array() )
+	public static function roots( $permissionCheck='view', $member=NULL, $where=array(), $limit=NULL )
 	{
 		if ( static::$customDatabaseId !== NULL )
 		{
-			$where[] = array('category_database_id=?', static::$customDatabaseId );
+			$where[] = array( 'category_database_id=?', static::$customDatabaseId );
 		}
 		
-		return parent::roots( $permissionCheck, $member, $where );
+		return parent::roots( $permissionCheck, $member, $where, $limit );
 	}
 	
 	/**
@@ -628,6 +629,9 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 			$values['category_database_id'] = $this->database_id;
 		}
+		
+		/* Need this for later */
+		$_new = $this->_new;
 
 		if ( ! $this->id )
 		{
@@ -746,6 +750,17 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 					unset( $values[ 'database_' . $field ] );
 				}
 			}
+			
+			/* Are we changing where comments go? */
+			if ( !$_new AND ( (int) $this->forum_record != (int) $values['forum_record'] OR (int) $this->forum_comments != (int) $values['forum_comments'] ) )
+			{
+				\IPS\Task::queue( 'frontpage', 'MoveComments', array(
+					'databaseId'		=> $this->database()->id,
+					'categoryId'		=> $this->_id,
+					'to'				=> ( $values['forum_comments'] AND $values['forum_record'] ) ? 'forums' : 'fpages',
+					'deleteTopics'		=> (bool) ( !$values['forum_record'] )
+				), 1, array( 'databaseId', 'to', 'categoryId' ) );
+			}
 
 			if ( isset( $values['database_forum_forum'] ) )
 			{
@@ -855,14 +870,6 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 		/* Delete category follows */
 		\IPS\Db::i()->delete( 'core_follow', array( "follow_app=? AND follow_area=? AND follow_rel_id=?", 'frontpage', 'categories' . $this->database()->id, $this->_id ) );
-
-		if( $this->hasChildren() )
-		{
-			foreach ( $this->children( NULL, NULL, TRUE ) as $child )
-			{
-				$child->delete();
-			}
-		}
 
 		parent::delete();
 	}
@@ -1121,10 +1128,11 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 *
 	 * @param	array		$indexData		Data from the search index
 	 * @param	array		$itemData		Basic data about the item. Only includes columns returned by item::basicDataColumns()
-	 * @param	array|NULL	$containerData	Basic data about the author. Only includes columns returned by container::basicDataColumns()
+	 * @param	array|NULL	$containerData	Basic data about the container. Only includes columns returned by container::basicDataColumns()
+	 * @param	bool		$escape			If the title should be escaped for HTML output
 	 * @return	\IPS\Http\Url
 	 */
-	public static function titleFromIndexData( $indexData, $itemData, $containerData )
+	public static function titleFromIndexData( $indexData, $itemData, $containerData, $escape = TRUE )
 	{
 		$recordClass = $indexData['index_class'];
 		if ( \in_array( 'IPS\Content\Comment', class_parents( $recordClass ) ) )
@@ -1134,11 +1142,11 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 		
 		if ( $recordClass::database()->use_categories )
 		{
-			return \IPS\Member::loggedIn()->language()->addToStack( static::$titleLangPrefix . $indexData['index_container_id'] );
+			return \IPS\Member::loggedIn()->language()->addToStack( static::$titleLangPrefix . $indexData['index_container_id'], NULL, $escape ? array( 'escape' => $escape ) : array() );
 		}
 		else
 		{
-			return $recordClass::database()->_title;
+			return $escape ? $recordClass::database()->_title : $recordClass::database()->getTitleForLanguage( \IPS\Member::loggedIn()->language() );
 		}
 	}
 	
@@ -1468,7 +1476,7 @@ class _Categories extends \IPS\Node\Model implements \IPS\Node\Permissions
 							'*',
 							'frontpage_custom_database_' . $this->database_id,
 							array( 'category_id=? AND record_approved=1 AND record_future_date=0', $this->id ),
-							'record_last_comment DESC',
+							'record_last_comment DESC, primary_id_field DESC', /* Just in case RSS imports the exact same time */
 							array( 0, 1 ),
 							NULL,
 							NULL,
