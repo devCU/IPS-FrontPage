@@ -51,7 +51,7 @@
 
 10/14/20
 
-- Updated for Invision Community Suite 4.5x FINAL
+- Updated for Invision Community Suite 4.5x
 - 1.0.5 Stable
 - Please report and issues, feature requests, or suggestions in Issues
 
