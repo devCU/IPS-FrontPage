@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Database Field Node
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -234,18 +234,19 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 	 * @param	string|NULL			$permissionCheck	The permission key to check for or NULl to not check permissions
 	 * @param	\IPS\Member|NULL	$member				The member to check permissions for or NULL for the currently logged in member
 	 * @param	mixed				$where				Additional WHERE clause
+	 * @param	array|NULL			$limit				Limit/offset to use, or NULL for no limit (default)
 	 * @return	array
 	 */
-	public static function roots( $permissionCheck='view', $member=NULL, $where=array() )
+	public static function roots( $permissionCheck='view', $member=NULL, $where=array(), $limit=NULL )
 	{
 		$permissionCheck = ( \IPS\Dispatcher::hasInstance() AND \IPS\Dispatcher::i()->controllerLocation === 'admin' ) ? NULL : $permissionCheck;
 
 		if ( ! isset( static::$cache[ static::$customDatabaseId ][ $permissionCheck ] ) )
 		{
 			$langToLoad = array();
-			$where[]    = array('field_database_id=?', static::$customDatabaseId );
+			$where[]    = array( 'field_database_id=?', static::$customDatabaseId );
 
-			static::$cache[ static::$customDatabaseId ][ $permissionCheck ] = parent::roots( $permissionCheck, $member, $where );
+			static::$cache[ static::$customDatabaseId ][ $permissionCheck ] = parent::roots( $permissionCheck, $member, $where, $limit );
 
 			foreach( static::$cache[ static::$customDatabaseId ][ $permissionCheck ] as $id => $obj )
 			{
@@ -423,6 +424,17 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 				{
 					$class = 'IPS\frontpage\Fields' . static::$customDatabaseId;
 					$class::validateUnique( $val, $row, $record );
+				};
+			}
+
+			if( $row->id == $database->field_title AND $row->type === 'Select' )
+			{
+				$customValidationCode = function( $val )
+				{
+					if( $val === NULL )
+					{
+						throw new \DomainException( 'form_required' );
+					}
 				};
 			}
 
@@ -778,14 +790,14 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 								\IPS\Output::i()->metaTags['og:image:url'][] = (string) $file->url;
 							}
 
-							$cipher = base64_encode( \IPS\Text\Encrypt::fromPlaintext( (string) $file )->cipher );
-							$downloadUrl = \IPS\Http\Url::internal( 'applications/core/interface/file/cfield.php', 'none' )->setqueryString( array(
+							$fileKey		= \IPS\Text\Encrypt::fromPlaintext( (string) $file )->tag();
+							$downloadUrl	= \IPS\Http\Url::internal( 'applications/core/interface/file/cfield.php', 'none' )->setqueryString( array(
 								'storage'	=> $file->storageExtension,
 								'path'		=> (string) $file->originalFilename,
-								'fileKey'   => $cipher
+								'fileKey'   => $fileKey
 							) );
 							
-							$parsed[] = \IPS\Theme::i()->getTemplate( 'global', 'frontpage', 'front' )->uploadDisplay( \IPS\File::get( static::$uploadStorageExtension, $file ), $record, $downloadUrl, $cipher );
+							$parsed[] = \IPS\Theme::i()->getTemplate( 'global', 'frontpage', 'front' )->uploadDisplay( \IPS\File::get( static::$uploadStorageExtension, $file ), $record, $downloadUrl, $fileKey );
 						}
 
 						$value = implode( " ", $parsed );
@@ -1617,7 +1629,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 					$buttons['set_as_title'] = array(
 						'icon'	=> 'list-ul',
 						'title'	=> 'frontpage_set_field_as_title',
-						'link'	=> $url->setQueryString( array( 'do' => 'setAsTitle', 'id' => $this->_id ) ),
+						'link'	=> $url->setQueryString( array( 'do' => 'setAsTitle', 'id' => $this->_id ) )->csrf(),
 						'data'	=> array()
 					);
 				}
@@ -1627,7 +1639,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 					$buttons['set_as_content'] = array(
 						'icon'	=> 'file-text-o',
 						'title'	=> 'frontpage_set_field_as_content',
-						'link'	=> $url->setQueryString( array( 'do' => 'setAsContent', 'id' => $this->_id ) ),
+						'link'	=> $url->setQueryString( array( 'do' => 'setAsContent', 'id' => $this->_id ) )->csrf(),
 						'data'	=> array()
 					);
 				}
@@ -2837,11 +2849,11 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 	 *
 	 * @param	mixed	$value	                    The value
 	 * @param	callback	$customValidationCode	Custom validation code
-	 * @param   \IPS\frontpage\Records|NULL   $record     The record
+	 * @param   \IPS\frontpage\Records|NULL   $content     The record
 	 * @param	int				        $flags		Bit flags
 	 * @return \IPS\Helpers\Form\FormAbstract
 	 */
-	public function buildHelper( $value=NULL, $customValidationCode=NULL, \IPS\frontpage\Records $record = NULL, $flags=0 )
+	public function buildHelper( $value=NULL, $customValidationCode=NULL, \IPS\Content $content = NULL, $flags=0 )
 	{
 		if ( class_exists( '\IPS\frontpage\Fields\\' . mb_ucfirst( $this->type ) ) )
 		{
@@ -2878,8 +2890,8 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 				$options['app']         = 'frontpage';
 				$options['key']         = 'Records' . static::$customDatabaseId;
 				$options['allowAttachments'] = $this->allow_attachments;
-				$options['autoSaveKey'] = 'RecordField_' . ( $record === NULL ? 'new' : $record->_id ) . '_' . $this->id;
-				$options['attachIds']   = ( $record === NULL ) ? NULL : array( $record->_id, $this->id,  static::$customDatabaseId );
+				$options['autoSaveKey'] = 'RecordField_' . ( $content === NULL ? 'new' : $content->_id ) . '_' . $this->id;
+				$options['attachIds']   = ( $content === NULL ) ? NULL : array( $content->_id, $this->id,  static::$customDatabaseId );
 				break;
 			case 'Email':
 			case 'Password':
@@ -2897,6 +2909,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 				{
 					if ( $this->extra['type'] === 'image' )
 					{
+						$options['allowStockPhotos'] = TRUE;
 						$options['image'] = array( 'maxWidth' => $this->extra['maxsize'][0], 'maxHeight' => $this->extra['maxsize'][1] );
 					}
 					else
@@ -3011,6 +3024,7 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 						return \IPS\Member::load( \intval( $id ) );
 					}, explode( "\n", $value ) );
 				}
+				
 				break;
 			case 'Date':
 				if ( \is_numeric( $value ) )
@@ -3058,6 +3072,12 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 				{
 					$options['decimals'] = $this->extra['places'];
 				}
+
+				if( !$this->required )
+				{
+					$options['unlimited'] 		= '';
+					$options['unlimitedLang']	= 'frontpage_number_none';
+				}
 				break;
 		}
 		
@@ -3070,9 +3090,9 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 					if ( $this->unique )
 					{
 						$field = $this;
-						$customValidationCode = function( $val ) use ( $field, $record )
+						$customValidationCode = function( $val ) use ( $field, $content )
 						{
-							\call_user_func_array( 'IPS\frontpage\Fields' . static::$customDatabaseId . '::validateUnique', array( $val, $field, $record ) );
+							\call_user_func_array( 'IPS\frontpage\Fields' . static::$customDatabaseId . '::validateUnique', array( $val, $field, $content ) );
 							
 							return \call_user_func( 'IPS\frontpage\Fields' . static::$customDatabaseId . '::validateInput_' . $field->id, $val );
 						};
@@ -3086,5 +3106,33 @@ class _Fields extends \IPS\CustomField implements \IPS\Node\Permissions
 		}
 
 		return new $class( 'content_field_' . $this->id, $value, $this->required, $options, $customValidationCode );
+	}
+	
+	
+	
+	/**
+	 * Get output for API
+	 *
+	 * @param			\IPS\Member|NULL		$authorizedMember	The member making the API request or NULL for API Key / client_credentials
+	 * @return			array
+	 * @apiresponse		int					id					ID number
+	 * @apiresponse		string				title				Title
+	 * @apiresponse		string|null			description			Description
+	 * @apiresponse		string				type				The field type - e.g. "Text", "Editor", "Radio"
+	 * @apiresponse		string|null			default				The default value
+	 * @apiresponse		bool					required			If the field is required
+	 * @apiresponse		object|null			options				If the field has certain options (for example, it is a select field), the possible values
+	 */
+	public function apiOutput( \IPS\Member $authorizedMember = NULL )
+	{
+		return array(
+			'id'			=> $this->_id,
+			'title'			=> $this->_title,
+			'description'	=> $this->_description ?: NULL,
+			'type'			=> $this->type,
+			'default'		=> $this->default_value ?: NULL,
+			'required'		=> (bool) $this->required,
+			'options'		=> $this->extra
+		);
 	}
 }

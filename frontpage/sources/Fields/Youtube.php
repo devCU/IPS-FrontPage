@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Youtube input class for Form Builder
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -112,7 +112,8 @@ class _Youtube extends \IPS\Helpers\Form\Text
 		
 		if ( ! isset( $params['height'] ) )
 		{
-			$params['height'] = 390;
+			/* Videos on Youtube are in a 16:9 resolution ratio, but we need to give some extra space hence the 30px addition */
+			$params['height'] = ( $params['width'] * ( 9 / 16 ) ) + 30;
 		}
 		
 		$url = \IPS\Http\Url::external( $url )->setQueryString( $params );
