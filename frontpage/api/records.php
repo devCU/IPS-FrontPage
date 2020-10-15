@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Database Records API
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     14 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -98,7 +98,7 @@ class _records extends \IPS\Content\Api\ItemController
 	 * @apiparam	int		hidden				If 1, only records which are hidden are returned, if 0 only not hidden
 	 * @apiparam	int		pinned				If 1, only records which are pinned are returned, if 0 only not pinned
 	 * @apiparam	int		featured			If 1, only records which are featured are returned, if 0 only not featured
-	 * @apiparam	string	sortBy				What to sort by. Can be 'date' for creation date, 'title' or leave unspecified for ID
+	 * @apiparam	string	sortBy				What to sort by. Can be 'date' for creation date, 'title', 'updated' or leave unspecified for ID
 	 * @apiparam	string	sortDir				Sort direction. Can be 'asc' or 'desc' - defaults to 'asc'
 	 * @apiparam	int		page				Page number
 	 * @apiparam	int		perPage				Number of results per page - defaults to 25
@@ -196,6 +196,7 @@ class _records extends \IPS\Content\Api\ItemController
 	 * @throws		1T306/5				NO_CATEGORY			The category ID does not exist
 	 * @throws		1T306/6				NO_AUTHOR			The author ID does not exist
 	 * @throws		2T306/G				NO_PERMISSION		The authorized user does not have permission to create a record in that category
+	 * @throws		1T306/D				TITLE_CONTENT_REQUIRED	No title or content fields were supplied
 	 * @return		\IPS\frontpage\Records
 	 */
 	public function POSTindex( $database )
@@ -255,7 +256,14 @@ class _records extends \IPS\Content\Api\ItemController
 			}
 		}
 
-		$record = $this->_create( $category, $author );
+		try
+		{
+			$record = $this->_create( $category, $author );
+		}
+		catch( \DomainException $e )
+		{
+			throw new \IPS\Api\Exception( $e->getMessage(), '1T306/D', 400 );
+		}
 
 		/* Sync Topic */
 		$class = $this->class;
@@ -267,6 +275,11 @@ class _records extends \IPS\Content\Api\ItemController
 			}
 			catch( \Exception $ex ) { }
 		}
+
+		/* Refresh category and database caches */
+		$record->container()->setLastComment();
+		$record->container()->setLastReview();
+		$record->container()->save();
 
 		/* Do it */
 		return new \IPS\Api\Response( 201, $record->apiOutput( $this->member ) );
@@ -419,6 +432,29 @@ class _records extends \IPS\Content\Api\ItemController
 					}
 				}
 			}
+		}
+
+		$date = ( !$this->member and \IPS\Request::i()->date ) ? new \IPS\DateTime( \IPS\Request::i()->date ) : \IPS\DateTime::create();
+
+		if( !$item->record_saved )
+		{
+			$item->record_saved		= $date->getTimestamp();
+		}
+
+		if( !$item->record_updated )
+		{
+			$item->record_updated		= $item->record_saved;
+		}
+
+		if( $type == 'add' AND ( !$item->_title OR !$item->_content ) )
+		{
+			throw new \DomainException( 'TITLE_CONTENT_REQUIRED' );
+		}
+		
+		/* Set FURL */
+		if ( isset( \IPS\Request::i()->fields['fields'][ $item->database()->field_title ] ) )
+		{
+			$item->record_dynamic_furl = \IPS\Http\Url\Friendly::seoTitle( \IPS\Request::i()->fields['fields'][ $item->database()->field_title ] );
 		}
 		
 		/* Pass up */
