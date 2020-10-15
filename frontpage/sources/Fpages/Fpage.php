@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		FrontPage Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -219,14 +219,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 		if ( isset( $qs['id'] ) )
 		{
-			if ( method_exists( \get_called_class(), 'loadAndCheckPerms' ) )
-			{
-				return static::loadAndCheckPerms( $qs['id'] );
-			}
-			else
-			{
-				return static::load( $qs['id'] );
-			}
+			return static::load( $qs['id'] );
 		}
 		else if ( isset( $qs['path'] ) )
 		{
@@ -752,34 +745,14 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 		if ( $fpageType === 'html' )
 		{
 			$return['tab_content'] = array( 'content_fpage_form_tab__content', NULL, NULL, 'ipsForm_vertical' );
-		
-			$tags = array();
-
-			if ( $item and $item->id == \IPS\Settings::i()->frontpage_error_fpage )
-			{
-				$tags['frontpage_error_fpage']['{error_message}'] = 'frontpage_error_fpage_message';
-				$tags['frontpage_error_fpage']['{error_code}']    = 'frontpage_error_fpage_code';
-			}
-
-			foreach( \IPS\frontpage\Databases::roots( NULL, NULL ) as $id => $db )
-			{
-				if ( ! $db->fpage_id )
-				{
-					$tags['frontpage_tag_databases']['{database="' . $db->key . '"}'] = $db->_title;
-				}
-			}
 			
-			foreach( \IPS\frontpage\Blocks\Block::roots( NULL, NULL ) as $id => $block )
+			$tagSource = \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=ajax&do=loadTags" );
+			if ( $item )
 			{
-				$tags['frontpage_tag_blocks']['{block="' . $block->key . '"}'] = $block->_title;
+				$tagSource = $tagSource->setQueryString( 'fpageId', $item->id );
 			}
 
-			foreach( \IPS\Db::i()->select( '*', 'frontpage_fpages', NULL, 'fpage_full_path ASC', array( 0, 50 ) ) as $fpage )
-			{
-				$tags['frontpage_tag_fpages']['{fpageurl="' . $fpage['fpage_full_path'] . '"}' ] = \IPS\Member::loggedIn()->language()->addToStack( static::$titleLangPrefix . $fpage['fpage_id'] );
-			}
-
-			$return['fpage_content'] = new \IPS\Helpers\Form\Codemirror( 'fpage_content', $item ? htmlentities( $item->content, ENT_DISALLOWED, 'UTF-8', TRUE ) : NULL, FALSE, array( 'tags' => $tags, 'height' => 600 ), function( $val )
+			$return['fpage_content'] = new \IPS\Helpers\Form\Codemirror( 'fpage_content', $item ? htmlentities( $item->content, ENT_DISALLOWED, 'UTF-8', TRUE ) : NULL, FALSE, array( 'tagSource' => $tagSource, 'height' => 600 ), function( $val )
 			{
 				/* Test */
 				try
@@ -983,6 +956,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 		}
 		
 		\IPS\Data\Store::i()->fpages_fpage_urls = $store;
+		
 		\IPS\Member::clearCreateMenu();
 	}
 	
@@ -1010,6 +984,42 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 	public static function getFpageUrlStore()
 	{
 		return static::getStore();
+	}
+
+	/**
+	 * Get page path, returning stripped path and current page number
+	 *
+	 * @param 	string		$path		Page path
+	 * @return 	array					Current path, Current page number
+	 */
+	public static function getStrippedPagePath( string $path ): array
+	{
+		/* Have a bash at pagination as it's not like we've much else to do */
+		$stripped = \IPS\Http\Url\Friendly::stripPageComponent( '/' . trim( $path, '/' ) . '/' );
+
+		if ( trim( $path, '/' ) != trim( $stripped, '/' ) )
+		{
+			if ( $stripped !== '/' )
+			{
+				$fpageStuff = str_replace( ltrim( $stripped, '/' ), '', $path );
+			}
+			else
+			{
+				$fpageStuff = $path;
+			}
+		}
+		else
+		{
+			return array( $path, NULL );
+		}
+
+		$bomb = explode( '/', $fpageStuff );
+		if ( !empty( $bomb[1] ) )
+		{
+			return array( trim( $stripped, '/' ), $bomb[1] );
+		}
+
+		return array( $path, NULL );
 	}
 		
 	/**
@@ -1315,6 +1325,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 		
 		if( \count( $widgets ) )
 		{
+			$googleFonts = array();
 			foreach ( $widgets as $areaKey => $area )
 			{
 				foreach ( $area as $widget )
@@ -1339,6 +1350,22 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 							}
 							
 							$_widget = \IPS\Widget::load( $appOrPlugin, $widget['key'], $widget['unique'], ( isset( $widget['configuration'] ) ) ? $widget['configuration'] : array(), ( isset( $widget['restrict'] ) ? $widget['restrict'] : null ), $orientation );
+							
+							if ( \in_array( 'IPS\Widget\Builder', class_implements( $_widget ) ) )
+							{
+								if ( ! empty( $_widget->configuration['widget_adv__font'] ) and $_widget->configuration['widget_adv__font'] !== 'inherit' )
+								{
+									$font = $_widget->configuration['widget_adv__font'];
+
+									if ( \mb_substr( $font, -6 ) === ' black' )
+									{
+										$fontWeight = 900;
+										$font = \mb_substr( $font, 0, -6 ) . ':400,900';
+									}
+
+									$googleFonts[ $font ] = $font;
+								}
+							}
 						}
 						
 						if ( \in_array( $areaKey, array('header', 'footer', 'sidebar' ) ) )
@@ -1353,6 +1380,11 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 						\IPS\Log::debug( $e, 'fpages_widgets' );
 					}
 				}
+			}
+			
+			if ( \count( $googleFonts ) )
+			{
+				\IPS\Output::i()->linkTags['googlefonts'] = array('rel' => 'stylesheet', 'href' => "https://fonts.googleapis.com/css?family=" . implode( "|", array_values( $googleFonts ) ) . "&display=swap");
 			}
 		}
 
@@ -1418,10 +1450,19 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 			$return['default'] = array(
 				'icon'	=> $this->default ? 'star' : 'star-o',
 				'title'	=> 'content_default_fpage',
-				'link'	=> $url->setQueryString( array( 'id' => $this->id, 'subnode' => 1, 'do' => 'setAsDefault' ) )
+				'link'	=> $url->setQueryString( array( 'id' => $this->id, 'subnode' => 1, 'do' => 'setAsDefault' ) )->csrf()
 			);
 		}
 
+		if ( \IPS\Member::loggedIn()->hasAcpRestriction( 'frontpage', 'fpages', 'fpage_edit' ) and $this->type !== 'builder' )
+		{
+			$return['default_error'] = array(
+				'icon'	=> \IPS\Settings::i()->frontpage_error_fpage == $this->id ? 'exclamation-circle' : 'exclamation',
+				'title'	=> \IPS\Settings::i()->frontpage_error_fpage == $this->id ? 'content_remove_error_fpage' : 'content_default_error_fpage',
+				'link'	=> $url->setQueryString( array( 'id' => \IPS\Settings::i()->frontpage_error_fpage ? 0 : $this->id, 'subnode' => 1, 'do' => 'toggleDefaultError' ) )->csrf()
+			);
+		}
+		
 		$return['view'] = array(
 			'icon'	   => 'search',
 			'title'    => 'content_launch_fpage',
@@ -1787,19 +1828,10 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 	{
 		if( $this->_url === NULL )
 		{
-			if ( ( \IPS\Application::load('frontpage')->default OR \IPS\Settings::i()->frontpage_use_different_gateway ) AND $this->default AND ! $this->folder_id )
+			if ( \IPS\Application::load('frontpage')->default AND $this->default AND ! $this->folder_id )
 			{
-				/* Are we using the gateway file? */
-				if ( \IPS\Settings::i()->frontpage_use_different_gateway )
-				{
-					/* Yes, work out the proper URL. */
-					$this->_url = \IPS\Http\Url::createFromString( \IPS\Settings::i()->frontpage_root_fpage_url, TRUE );
-				}
-				else
-				{
-					/* No - that's easy */
-					$this->_url = \IPS\Http\Url::internal( '', 'front' );
-				}
+				/* No - that's easy */
+				$this->_url = \IPS\Http\Url::internal( '', 'front' );
 			}
 			else
 			{
@@ -2265,6 +2297,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 			if ( $this->meta_description AND ( !isset( \IPS\Output::i()->metaTags['description'] ) OR !\IPS\Output::i()->metaTags['description'] ) )
 			{
 				\IPS\Output::i()->metaTags['description'] = $this->meta_description;
+				\IPS\Output::i()->metaTags['og:description'] = $this->meta_description;
 			}
 			
 			/* If this is a default fpage, we may be accessing this from the folder only. The isset() check is to ensure canonical
@@ -2274,7 +2307,22 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 				\IPS\Output::i()->linkTags['canonical'] = (string) $this->url();
 			}
 
-			/* Can only disable sidebar if HTML fpage */
+			if ( !isset( \IPS\Output::i()->metaTags['og:url'] ) )
+			{
+				\IPS\Output::i()->metaTags['og:url'] = (string) $this->url();
+			}
+
+			if ( !isset( \IPS\Output::i()->metaTags['og:title'] ) )
+			{
+				\IPS\Output::i()->metaTags['og:title'] = \IPS\Output::i()->title;
+			}
+
+			if ( !isset( \IPS\Output::i()->metaTags['og:type'] ) )
+			{
+				\IPS\Output::i()->metaTags['og:type'] = 'website';
+			}
+
+			/* Can only disable sidebar if HTML page */
 			if ( ! $this->show_sidebar and $this->type === 'html' )
 			{
 				\IPS\Output::i()->sidebar['enabled'] = false;
@@ -2342,7 +2390,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 					list( $group, $name, $key ) = explode( '__', $this->wrapper_template );
 					$content = $content ?: $this->getHtmlContent();
 					$content .= $mfa;
-					\IPS\Output::i()->sendOutput( \IPS\frontpage\Theme::i()->getTemplate($group, 'frontpage', 'fpage')->$name( $content, $this->getHtmlTitle() ), 200, $this->getContentType(), \IPS\Output::i()->httpHeaders );
+					\IPS\Output::i()->sendOutput( \IPS\frontpage\Theme::i()->getTemplate($group, 'frontpage', 'fpage')->$name( $content, $this->getHtmlTitle() ), 200, $this->getContentType() );
 				}
 				catch( \OutOfRangeException $e )
 				{
