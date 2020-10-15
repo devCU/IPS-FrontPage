@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Block Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -239,7 +239,7 @@ class _Block extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 					if( $block->getConfig('editor') == 'editor' )
 					{
-						$html = \IPS\Theme::i()->getTemplate( 'widgets', 'frontpage', 'front' )->Wysiwyg( $html, $orientation );
+						$html = \IPS\Theme::i()->getTemplate( 'widgets', 'frontpage', 'front' )->Wysiwyg( \IPS\Member::loggedIn()->language()->addToStack( "frontpage_block_content_{$block->id}" ), $orientation );
 					}
 
 					return $html;
@@ -659,15 +659,20 @@ EOF;
 
 		if ( $block_editor === 'editor' )
 		{
-			$form->add( new \IPS\Helpers\Form\Editor( 'block_content', $this->content, FALSE, array(
-				'app'         => 'frontpage',
-				'key'         => 'BlockContent',
-				'autoSaveKey' => 'block-content-' . ( $this->id ? $this->id : 'new' ),
-				'attachIds'	  => ( $this->id ) ? array( $this->id ) : NULL ), NULL, NULL, NULL, 'block_content_editor' ) );
+			$form->add( new \IPS\Helpers\Form\Translatable( 'block_content', NULL, FALSE, array(
+				'key'			=> ( $this->id ) ? "frontpage_block_content_{$this->id}" : NULL,
+				'editor'		=> array(
+					'app'         => 'frontpage',
+					'key'         => 'BlockContent',
+					'autoSaveKey' => 'block-content-' . ( $this->id ? $this->id : 'new' ),
+					'attachIds'	  => ( $this->id ) ? array( $this->id ) : NULL
+				)
+			) ) );
+				
 		}
 		else
 		{
-			$form->add( new \IPS\Helpers\Form\Codemirror( 'block_content', htmlentities( $this->content, ENT_DISALLOWED, 'UTF-8', TRUE ), FALSE, array(), function( $val ) {
+			$form->add( new \IPS\Helpers\Form\Codemirror( 'block_content', htmlentities( $this->content, ENT_DISALLOWED, 'UTF-8', TRUE ), FALSE, array( 'tagSource' => \IPS\Http\Url::internal( "app=frontpage&module=templates&controller=blocks&do=loadTags" ) ), function( $val ) {
 				if ( \IPS\Request::i()->block_editor == 'php' )
 				{
 					try
@@ -788,7 +793,7 @@ EOF;
 				/* Now test it */
 				try
 				{
-					$block = \IPS\frontpage\Blocks\Block::load( $this->key, 'block_key');
+					$block = \IPS\frontpage\Blocks\Block::load( $values['block_key'], 'block_key');
 
 					/* It's taken... */
 					if ( $this->id != $block->id )
@@ -812,6 +817,22 @@ EOF;
 			{
 				$values = $this->widget()->preConfig( $values );
 			}
+
+			/* Special advanced builder stuff */
+			if ( \in_array( 'IPS\Widget\Builder', class_implements( $this->widget() ) ) )
+			{
+				if( isset( $values['widget_adv__background_custom_image'] ) and $values['widget_adv__background_custom_image'] )
+				{
+					$values['widget_adv__background_custom_image'] = (string) $values['widget_adv__background_custom_image'];
+				}
+			}
+			
+			if( isset( $values['show_on_all_devices'] ) and $values['show_on_all_devices'] )
+			{
+				$values['devices_to_show'] = array( 'Phone', 'Tablet', 'Desktop' );
+			}
+
+			unset( $values['show_on_all_devices'] );
 
 			/* Store config */
 			foreach( $values as $k => $v )
@@ -937,7 +958,7 @@ EOF;
 					$newTemplate = \IPS\frontpage\Templates::add( $templateArray );
 
 					$values['content']  = null;
-					$values['template'] = $newTemplate->id;
+					$values['template'] = $newTemplate->key;
 				}
 				else
 				{
@@ -950,6 +971,11 @@ EOF;
 		else if( isset( $values['block_content'] ) )
 		{
 			$values['template'] = 0;
+			if ( \IPS\Request::i()->block_editor === 'editor' )
+			{
+				\IPS\Lang::saveCustom( 'frontpage', "cms_block_content_{$this->id}", $values['block_content'] );
+				$values['block_content'] = NULL;
+			}
 		}
 
 		if ( isset( $values['block_category'] ) AND ( ! empty( $values['block_category'] ) OR $values['block_category'] === 0 ) )
