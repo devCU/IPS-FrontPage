@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief       FrontPage Application Class
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -65,6 +65,7 @@ spl_autoload_register( function( $class )
 			public static \$module = 'records{$databaseId}';
 			public static \$includeInSearch = {$includeInSearch};
 			public static \$contentType = '{$contentType}';
+			public static \$hideLogKey = 'ccs-records{$databaseId}';
 			public static \$databaseColumnMap = array(
 				'author'				=> 'member_id',
 				'container'				=> 'category_id',
@@ -114,6 +115,7 @@ EOF;
 			public static \$customDatabaseId = $databaseId;
 			public static \$itemClass = 'IPS\frontpage\Records{$databaseId}';
 			public static \$title     = 'content_record_comments_title_{$databaseId}';
+			public static \$hideLogKey = 'ccs-records{$databaseId}-comments';
 		}
 EOF;
 		eval( $data );
@@ -132,6 +134,7 @@ EOF;
 			public static \$customDatabaseId = $databaseId;
 			public static \$itemClass = 'IPS\frontpage\Records{$databaseId}';
 			public static \$title     = 'content_record_reviews_title_{$databaseId}';
+			public static \$hideLogKey = 'ccs-records{$databaseId}-reviews';
 		}
 EOF;
 		eval( $data );
@@ -242,6 +245,8 @@ class _Application extends \IPS\Application
 				'do' 		  => 'manage&database_id=' . $database['id'],
 				'restriction' => 'records_manage',
 				'restriction_module' => 'databases'
+				'menu_checks' => array( 'do' => 'manage', 'database_id' => $database['id'] ),
+				'menu_controller' => 'records_' . $database['id']
 			);
 
 			if ( $database['use_categories'] )
@@ -253,6 +258,8 @@ class _Application extends \IPS\Application
 					'do' 		  => 'manage&database_id=' . $database['id'],
 					'restriction' => 'categories_manage',
 					'restriction_module' => 'databases'
+					'menu_checks' => array( 'do' => 'manage', 'database_id' => $database['id'] ),
+					'menu_controller' => 'categories_' . $database['id']
 				);
 			}
 			
@@ -263,6 +270,8 @@ class _Application extends \IPS\Application
 				'do' 		  => 'manage&database_id=' . $database['id'],
 				'restriction' => 'frontpage_fields_manage',
 				'restriction_module' => 'databases'
+				'menu_checks' => array( 'do' => 'manage', 'database_id' => $database['id'] ),
+				'menu_controller' => 'fields_' . $database['id']
 			);
 
 			\IPS\Member::loggedIn()->language()->words[ 'menu__frontpage_database_' . $database['id'] ]    = $database['title'];
@@ -563,7 +572,7 @@ EOF;
 	 */
 	public function buildThemeTemplates()
 	{
-		parent::buildThemeTemplates();
+		$return = parent::buildThemeTemplates();
 
 		foreach( array( 'database', 'block', 'fpage' ) as $location )
 		{
@@ -631,6 +640,7 @@ EOF;
 			throw new \RuntimeException( \IPS\Member::loggedIn()->language()->addToStack('dev_could_not_write_data') );
 		}
 
+		return $return;
 	}
 
 	/**
