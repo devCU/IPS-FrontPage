@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Records Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -142,11 +142,6 @@ class _Records extends \IPS\Content\Item implements
 	 * @brief	[Records] Standard fields
 	 */
 	protected static $standardFields = array( 'record_publish_date', 'record_expiry_date', 'record_allow_comments', 'record_comment_cutoff' );
-	
-	/**
-	 * @brief	[Content]	Key for hide reasons
-	 */
-	public static $hideLogKey = 'ccs-records';
 
 	/**
 	 * @brief	Icon
@@ -339,7 +334,7 @@ class _Records extends \IPS\Content\Item implements
 			catch( \OutOfRangeException $ex ) { }
 		}
 
-		$where = array( array( '? LIKE CONCAT( record_dynamic_furl, \'%\') OR record_static_furl=?', $slug, $slug ) );
+		$where = array( array( '? LIKE CONCAT( record_dynamic_furl, \'%\') OR LOWER(record_static_furl)=?', $slug, mb_strtolower( $slug ) ) );
 		if ( $categoryId )
 		{
 			$where[] = array( 'category_id=?', $categoryId );
@@ -349,7 +344,7 @@ class _Records extends \IPS\Content\Item implements
 		{
 			$pass = FALSE;
 			
-			if ( $slug === $record['record_static_furl'] )
+			if ( mb_strtolower( $slug ) === mb_strtolower( $record['record_static_furl'] ) )
 			{
 				$pass = TRUE;
 			}
@@ -364,6 +359,11 @@ class _Records extends \IPS\Content\Item implements
 			if ( $pass === TRUE )
 			{
 				static::$multitons[ $record['primary_id_field'] ] = static::constructFromData( $record );
+				
+				if ( $redirectIfSeoTitleIsIncorrect AND $slug !== $record['record_static_furl'] )
+				{
+					\IPS\Output::i()->redirect( static::$multitons[ $record['primary_id_field'] ]->url() );
+				}
 			
 				return static::$multitons[ $record['primary_id_field'] ];
 			}	
@@ -471,6 +471,8 @@ class _Records extends \IPS\Content\Item implements
 		if ( isset( static::$customFields[ $database->field_title ] ) )
 		{
 			$formElements['title'] = static::$customFields[ $database->field_title ];
+			$formElements['title']->rowClasses[] = 'ipsFieldRow_primary';
+			$formElements['title']->rowClasses[] = 'ipsFieldRow_fullWidth';
 		}
 
 		if ( isset( $elements['guest_name'] ) )
@@ -572,15 +574,13 @@ class _Records extends \IPS\Content\Item implements
 					}
 					if ( \IPS\Member::loggedIn()->group['g_append_edit'] )
 					{
-						$formElements['record_edit_show'] = new \IPS\Helpers\Form\Checkbox( 'record_edit_show', \IPS\Member::loggedIn()->member_id == $item->author()->member_id );
+						$formElements['record_edit_show'] = new \IPS\Helpers\Form\Checkbox( 'record_edit_show', FALSE );
 					}
 				}
 			}
 		}
 
-		$postKey = ( $item ) ? $item->_post_key : md5( mt_rand() );
-
-		if ( $fieldsClass::fixedFieldFormShow( 'record_publish_date' ) AND \IPS\Member::loggedIn()->modPermission( "can_future_publish_content" ) )
+		if ( $fieldsClass::fixedFieldFormShow( 'record_publish_date' ) AND ( \IPS\Member::loggedIn()->modPermission( "can_future_publish_content" ) or \IPS\Member::loggedIn()->modPermission( "can_future_publish_" . static::$title ) ) )
 		{
 			$formElements['record_publish_date'] = $elements['date'];
 		}
@@ -595,7 +595,7 @@ class _Records extends \IPS\Content\Item implements
 				$dims = array( 'maxWidth' => $fixedFieldSettings['record_image']['image_dims'][0], 'maxHeight' => $fixedFieldSettings['record_image']['image_dims'][1] );
 			}
 
-			$formElements['record_image'] = new \IPS\Helpers\Form\Upload( 'record_image', ( ( $item and $item->record_image ) ? \IPS\File::get( 'frontpage_Records', $item->record_image ) : NULL ), FALSE, array( 'image' => $dims, 'storageExtension' => 'frontpage_Records', 'postKey' => $postKey, 'multiple' => false ), NULL, NULL, NULL, 'record_image' );
+			$formElements['record_image'] = new \IPS\Helpers\Form\Upload( 'record_image', ( ( $item and $item->record_image ) ? \IPS\File::get( 'frontpage_Records', $item->record_image ) : NULL ), FALSE, array( 'image' => $dims, 'storageExtension' => 'frontpage_Records', 'multiple' => false, 'allowStockPhotos' => true ), NULL, NULL, NULL, 'record_image' );
 		}
 
 		if ( $fieldsClass::fixedFieldFormShow( 'record_expiry_date' ) )
@@ -645,7 +645,8 @@ class _Records extends \IPS\Content\Item implements
 			}
 		}
 			
-		if ( static::modPermission( 'hide', NULL, $container ) )
+		$canHide = ( $item ) ? $item->canHide() : ( \IPS\Member::loggedIn()->group['g_hide_own_posts'] == '1' or \in_array( 'IPS\frontpage\Records' . $database->id, explode( ',', \IPS\Member::loggedIn()->group['g_hide_own_posts'] ) ) );
+		if ( static::modPermission( 'hide', NULL, $container ) or $canHide )
 		{
 			$options['hide'] = 'create_record_hidden';
 			$toggles['hide'] = array( 'create_record_hidden' );
@@ -977,6 +978,8 @@ class _Records extends \IPS\Content\Item implements
 			static::$customFields = $fieldsClass::fields( $customValues, ( $this->_new ? 'add' : 'edit' ), $container, 0, ( $this->_new ? NULL : $this ) );
 		}
 		
+		$seen = [];
+		
 		foreach( static::$customFields as $key => $field )
 		{
 			$seen[] = $key;
@@ -1006,7 +1009,7 @@ class _Records extends \IPS\Content\Item implements
 			/* If we're using decimals, then the database field is set to DECIMALS, so we cannot using stringValue() */
 			else if ( isset( $customValues[ $field->name ] ) and \get_class( $field ) == 'IPS\Helpers\Form\Number' and ( isset( $field->options['decimals'] ) and $field->options['decimals'] > 0 ) )
 			{
-				$this->$key = $field->value;
+				$this->$key = ( $field->value === '' ) ? NULL : $field->value;
 			}
 			else
 			{
@@ -1476,7 +1479,7 @@ class _Records extends \IPS\Content\Item implements
 		$idColumn = static::$databaseColumnId;
 		$attachments = array();
 		
-		$internal = \IPS\Db::i()->select( 'attachment_id', 'core_attachments_map', array( '(location_key=? OR location_key=?) and id1=? and id3=?', ''frontpage_Records', ''frontpage_Records' . static::$customDatabaseId, $this->$idColumn, static::$customDatabaseId ) );
+		$internal = \IPS\Db::i()->select( 'attachment_id', 'core_attachments_map', array( '(location_key=? OR location_key=?) and id1=? and id3=?', 'frontpage_Records', 'frontpage_Records' . static::$customDatabaseId, $this->$idColumn, static::$customDatabaseId ) );
 		
 		/* Attachments */
 		foreach( \IPS\Db::i()->select( '*', 'core_attachments', array( array( 'attach_id IN(?)', $internal ), array( 'attach_is_image=1' ) ), 'attach_id ASC', $limit ) as $row )
@@ -3293,6 +3296,46 @@ class _Records extends \IPS\Content\Item implements
 	/* !Notifications */
 	
 	/**
+	 * @brief	Custom Field Notification Excludes
+	 */
+	protected $_fieldNotificationExcludes = array();
+	
+	/**
+	 * Set notification exclusions for custom field updates.
+	 *
+	 * @param	string	$exclude		Predetermined array of member IDs to exclude
+	 * @return	void
+	 */
+	public function setFieldQuoteAndMentionExcludes( array $exclude = array() ): void
+	{
+		$className = 'IPS\frontpage\Fields' . static::$customDatabaseId;
+		foreach( $className::data() AS $field )
+		{
+			if ( $field->type == 'Editor' )
+			{
+				$key = "field_{$field->id}";
+				$_data  = static::_getQuoteAndMentionIdsFromContent( $this->$key );
+				foreach( $_data AS $type => $memberIds )
+				{
+					$this->_fieldNotificationExcludes = array_merge( $this->_fieldNotificationExcludes, $memberIds );
+				}
+			}
+		}
+		
+		$this->_fieldNotificationExcludes = array_unique( $this->_fieldNotificationExcludes );
+	}
+	
+	/**
+	 * Send notifications for custom field updates
+	 *
+	 * @return array
+	 */
+	public function sendFieldQuoteAndMentionNotifications(): array
+	{
+		return $this->sendQuoteAndMentionNotifications( $this->_fieldNotificationExcludes );
+	}
+	
+	/**
 	 * Send quote and mention notifications
 	 *
 	 * @param	array	$exclude		An array of member IDs *not* to send notifications to
@@ -3300,7 +3343,7 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	protected function sendQuoteAndMentionNotifications( $exclude=array() )
 	{
-		$data = array( 'quotes' => array(), 'mentions' => array() );
+		$data = array( 'quotes' => array(), 'mentions' => array(), 'embeds' => array() );
 		
 		$className = 'IPS\frontpage\Fields' .  static::$customDatabaseId;
 		foreach ( $className::data() as $field )
@@ -3464,13 +3507,23 @@ class _Records extends \IPS\Content\Item implements
 	 * @apiresponse	bool					hidden			Event is hidden
 	 * @apiresponse	bool					pinned			Event is pinned
 	 * @apiresponse	bool					featured		Event is featured
-	 * @apiresponse	string					url				URL
+	 * @apiresponse	string|NULL				url	
 	 * @apiresponse	float					rating			Average Rating
 	 * @apiresponse string					image			Record Image
 	 * @apiresponse \IPS\forums\Topic		topic			The topic
 	 */
 	public function apiOutput( \IPS\Member $authorizedMember = NULL )
 	{
+		/* You can have a database that is not embedded onto a fpage */
+		try
+		{
+			$url = (string) $this->url();
+		}
+		catch( \LogicException $e )
+		{
+			$url = NULL;
+		}
+
 		return array(
 			'id'			=> $this->primary_id_field,
 			'title'			=> $this->_title,
@@ -3488,7 +3541,7 @@ class _Records extends \IPS\Content\Item implements
 			'hidden'		=> (bool) $this->hidden(),
 			'pinned'		=> (bool) $this->mapped('pinned'),
 			'featured'		=> (bool) $this->mapped('featured'),
-			'url'			=> (string) $this->url(),
+			'url'			=> $url,
 			'rating'		=> $this->averageRating(),
 			'image'			=> $this->record_image ? (string) \IPS\File::get( 'frontpage_Records', $this->record_image )->url : null,
 			'topic'			=> $this->topicid ? $this->topic()->apiOutput( $authorizedMember ) : NULL,
@@ -3630,4 +3683,20 @@ class _Records extends \IPS\Content\Item implements
 		}
 	}
 
+	/**
+	 * Get the last modification date for the sitemap
+	 *
+	 * @return \IPS\DateTime|null		timestamp of the last modification time for the sitemap
+	 */
+	public function lastModificationDate()
+	{
+		$lastMod = parent::lastModificationDate();
+
+		if ( !$lastMod AND $this->record_updated )
+		{
+			$lastMod = \IPS\DateTime::ts( $this->record_updated );
+		}
+
+		return $lastMod;
+	}
 }

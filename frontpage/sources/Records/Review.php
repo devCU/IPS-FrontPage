@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Post Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -116,11 +116,31 @@ class _Review extends \IPS\Content\Review implements \IPS\Content\EditHistory, \
 	 * @brief	Database ID
 	 */
 	public static $customDatabaseId = NULL;
-	
+
 	/**
-	 * @brief	[Content]	Key for hide reasons
+	 * Load Record
+	 *
+	 * @see		\IPS\Db::build
+	 * @param	int|string	$id					ID
+	 * @param	string		$idField			The database column that the $id parameter pertains to (NULL will use static::$databaseColumnId)
+	 * @param	mixed		$extraWhereClause	Additional where clause(s) (see \IPS\Db::build for details) - if used will cause multiton store to be skipped and a query always ran
+	 * @return	static
+	 * @throws	\InvalidArgumentException
+	 * @throws	\OutOfRangeException
 	 */
-	public static $hideLogKey = 'ccs-records-review';
+	public static function load( $id, $idField=NULL, $extraWhereClause=NULL )
+	{
+		if( $extraWhereClause === NULL )
+		{
+			$extraWhereClause = array( static::commentWhere() );
+		}
+		else
+		{
+			$extraWhereClause[] = static::commentWhere();
+		}
+
+		return parent::load( $id, $idField, $extraWhereClause );
+	}
 
 	/**
 	 * Create first comment (created with content item)
