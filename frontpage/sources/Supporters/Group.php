@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief       FrontPage Supporters Group Node
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     15 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -143,6 +143,24 @@ class _Group extends \IPS\Node\Model
 		{
 			\IPS\Lang::saveCustom( 'frontpage', "frontpage_extras_groups_{$this->id}", $values['extras_group_title'] );
 			unset( $values['extras_group_title'] );
+		}
+
+		if( isset( $values['extras_group_button'] ) )
+		{
+			$values['button']	= $values['extras_group_button'];
+			unset( $values['extras_group_button'] );
+		}
+
+		if( isset( $values['extras_group_button_text'] ) )
+		{
+			$values['button_text']	= $values['extras_group_button_text'];
+			unset( $values['extras_group_button_text'] );
+		}
+
+		if( isset( $values['extras_group_button_url'] ) )
+		{
+			$values['button_url']	= $values['extras_group_button_url'];
+			unset( $values['extras_group_button_url'] );
 		}
 
 		if( isset( $values['extras_group_template'] ) )
