@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		Templates Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -33,6 +33,9 @@
 namespace IPS\frontpage;
 
 /* To prevent PHP errors (extending class does not exist) revealing path */
+
+use IPS\frontpage\Pages\Page;
+
 if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 {
 	header( ( isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0' ) . ' 403 Forbidden' );
@@ -41,6 +44,14 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 
 /**
  * @brief	Template Model
+ * @notes	Rules of a template:
+ * user_created: this means the user has creating a new set of templates (via import or Add New)
+ * user_edited: this means the user has edited a template so it no longer matches the master template
+ *
+ * CUSTOM FLAG: True when user_created is true, user_edited is false, original_group != any of the master original_groups (if original group is the same as any of the master groups then it is a default template still)
+ * MODIFIED FLAG: True when user_edited is true
+ *
+ * Updating templates: Update where user_edited is FALSE and user_created is FALSE OR user_created is TRUE and original_group is in master groups
  */
 class _Templates extends \IPS\Patterns\ActiveRecord
 {
@@ -73,9 +84,19 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 	 * @brief	[ActiveRecord] Multiton Map
 	 */
 	protected static $multitonMap	= array();
+
+	/**
+	 * @brief	Master groups
+	 */
+	protected static $masterGroups	= NULL;
+
+	/**
+	 * @brief	Master templates
+	 */
+	protected static $masterTemplates = NULL;
 		
 	/**
-	 * @brief	Retusn all types
+	 * @brief	Return all types
 	 */
 	const RETURN_ALL = 1;
 	
@@ -245,7 +266,64 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 
 		return ucwords( str_replace( array( '-', '_' ), ' ', $name ) );
 	}
-	
+
+	/**
+	 * Get master templates
+	 *
+	 * This returns an array of all template groups that are considered IPS defaults
+	 * @return array
+	 */
+	public static function getMasterTemplates() : array
+	{
+		if ( static::$masterTemplates === NULL )
+		{
+			static::$masterTemplates = iterator_to_array( \IPS\Db::i()->select( '*, MD5( CONCAT( template_location, \'.\', template_group, \'.\', template_title ) ) as bit_key', 'frontpage_templates', array( 'template_master=1' ) )->setKeyField( 'bit_key' ) );
+		}
+
+		return static::$masterTemplates;
+	}
+
+	/**
+	 * Get the master template version of this template
+	 *
+	 * @return \IPS\frontpage\Templates|NULL
+	 */
+	public function getMasterOfThis()
+	{
+		if ( $this->master )
+		{
+			return $this;
+		}
+
+		$key = md5( $this->location . '.'. $this->original_group . '.' . $this->title );
+		if ( \in_array( $key, array_keys( static::getMasterTemplates() ) ) )
+		{
+			return static::constructFromData( static::$masterTemplates[ $key ] );
+		}
+
+		return NULL;
+	}
+
+	/**
+	 * Get master group names
+	 *
+	 * This returns an array of all template groups that are considered IPS defaults
+	 * @return array
+	 */
+	public static function getMasterGroups() : array
+	{
+		if ( static::$masterGroups === NULL )
+		{
+			static::$masterGroups = array();
+			foreach( \IPS\Db::i()->select( 'template_group', static::$databaseTable, array( 'template_master=1 and template_original_group=template_group' ), 'template_group ASC', NULL, 'template_group' ) as $template )
+			{
+				static::$masterGroups[ $template ] = $template;
+			}
+		}
+
+		return static::$masterGroups;
+	}
+
 	/**
 	 * Get all template group
 	 *
@@ -482,7 +560,7 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 
 		$newTemplate->_new         = TRUE;
 		$newTemplate->user_created = 1;
-		$newTemplate->user_edited  = 1;
+		$newTemplate->user_edited  = 0;
 		$newTemplate->master       = 0;
 
 		$newTemplate->save();
@@ -522,6 +600,179 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 		
 		\IPS\Db::i()->update( 'frontpage_templates', array( 'template_file_object' => NULL ) );
 	}
+
+	/**
+	 * Export form for FrontPage Templates
+	 *
+	 * @param 	bool 				$appPluginBuild			TRUE to customise form for app/plugin builds
+	 * @param 	array 				$preSelected			Array of default values for checkboxSet
+	 * @return 	\IPS\Helpers\Form
+	 */
+	public static function exportForm( bool $appPluginBuild=FALSE, array $preSelected=array() ): \IPS\Helpers\Form
+	{
+		$form = new \IPS\Helpers\Form( 'form', $appPluginBuild ? 'save' : 'next' );
+		if( !$appPluginBuild )
+		{
+			$form->addMessage( 'frontpage_templates_export_description', 'ipsMessage ipsMessage_information' );
+			$form->addButton( 'frontpage_templates_export_return', 'link', \IPS\Http\Url::internal( "app=frontpage&module=templates&controller=templates" ) );
+		}
+		else
+		{
+			$form->addMessage( 'frontpage_templates_export_description_app', 'ipsMessage ipsMessage_general' );
+		}
+
+		foreach( \IPS\frontpage\Templates::getTemplates( \IPS\frontpage\Templates::RETURN_DATABASE_ONLY + \IPS\frontpage\Templates::RETURN_ALL ) as $template )
+		{
+			$title = \IPS\frontpage\Templates::readableGroupName( $template->group );
+
+			if ( $template->location === 'database' )
+			{
+				$templates['database'][ $template->group ] = $title;
+			}
+			else if ( $template->location === 'block' )
+			{
+				$templates['block'][ $template->key ] = $title . ' &gt; ' . $template->title;
+			}
+			else if ( $template->location === 'fpage' )
+			{
+				$templates['fpage'][ $template->key ] = $title . ' &gt; ' . $template->title;
+			}
+		}
+
+		foreach( $templates as $location => $data )
+		{
+			$defaultValue = $preSelected[ 'templates_' . $location ] ?? FALSE;
+			$form->add( new \IPS\Helpers\Form\CheckboxSet( 'templates_' . $location, $defaultValue, FALSE, array( 'options' => $data ) ) );
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Export requested templates as XML
+	 *
+	 * @param	array				$values		Checkbox set values
+	 * @return 	\XMLWriter|null
+	 */
+	public static function exportAsXml( array $values ):? \XMLWriter
+	{
+		$templates = array();
+		foreach( \IPS\frontpage\Templates::getTemplates( \IPS\frontpage\Templates::RETURN_DATABASE_ONLY + \IPS\frontpage\Templates::RETURN_ALL ) as $template )
+		{
+			$templates[ $template->location ][ $template->group ] = $template->title;
+		}
+		$exportTemplates = array();
+		foreach ( $templates as $location => $data )
+		{
+			if ( isset( $values[ 'templates_' . $location ] ) and \count( $values[ 'templates_' . $location ] ) )
+			{
+				if ( $location === 'database' )
+				{
+					$tmp = \IPS\frontpage\Theme::i()->getRawTemplates( 'frontpage', array( 'database' ), array_values( $values[ 'templates_' . $location ] ), \IPS\frontpage\Theme::RETURN_DATABASE_ONLY + \IPS\frontpage\Theme::RETURN_ALL );
+
+					foreach ( $tmp['frontpage'] as $loc => $data )
+					{
+						if ( $loc === $location )
+						{
+							foreach ( $data as $key => $tdata )
+							{
+								foreach ( $tdata as $tkey => $tkdata )
+								{
+									$exportTemplates['frontpage'][ $location ][ $key ][ $tkey ] = $tkdata;
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					$tmp = \IPS\frontpage\Theme::i()->getRawTemplates( 'frontpage', array( $location ), NULL, \IPS\frontpage\Theme::RETURN_DATABASE_ONLY + \IPS\frontpage\Theme::RETURN_ALL );
+
+					foreach ( $tmp['frontpage'] as $loc => $data )
+					{
+						if ( $loc === $location )
+						{
+							foreach ( $data as $key => $tdata )
+							{
+								foreach ( $tdata as $tkey => $tkdata )
+								{
+									if ( \in_array( $tkey, $values[ 'templates_' . $location ] ) )
+									{
+										$exportTemplates['frontpage'][ $location ][ $key ][ $tkey ] = $tkdata;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if ( \count( $exportTemplates ) )
+		{
+			/* Init */
+			$xml = new \XMLWriter;
+			$xml->openMemory();
+			$xml->setIndent( TRUE );
+			$xml->startDocument( '1.0', 'UTF-8' );
+
+			/* Root tag */
+			$xml->startElement( 'templates' );
+
+			foreach ( $exportTemplates as $app => $location )
+			{
+				foreach ( $location as $key => $data )
+				{
+					foreach ( $data as $group => $template )
+					{
+						foreach ( $template as $key => $templateData )
+						{
+							/* Initiate the <template> tag */
+							$xml->startElement( 'template' );
+
+							foreach ( $templateData as $k => $v )
+							{
+								if ( !\in_array( \substr( $k, 9 ), array( 'content', 'params' ) ) )
+								{
+									$xml->startAttribute( $k );
+									$xml->text( $v );
+									$xml->endAttribute();
+								}
+							}
+
+							/* Write (potential) HTML fields */
+							foreach ( array( 'template_params', 'template_content' ) as $field )
+							{
+								if ( isset( $templateData[ $field ] ) )
+								{
+									$xml->startElement( $field );
+									if ( preg_match( '/<|>|&/', $templateData[ $field ] ) )
+									{
+										$xml->writeCData( str_replace( ']]>', ']]]]><![CDATA[>', $templateData[ $field ] ) );
+									}
+									else
+									{
+										$xml->text( $templateData[ $field ] );
+									}
+									$xml->endElement();
+								}
+							}
+
+							/* Close the <template> tag */
+							$xml->endElement();
+						}
+					}
+				}
+			}
+
+			/* Finish */
+			$xml->endDocument();
+
+			return $xml;
+		}
+
+		return NULL;
+	}
 	
 	/**
 	 * Is suitable to be used for a custom wrapper?
@@ -554,6 +805,220 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 		}
 
 		return false;
+	}
+
+	/**
+	 * Sets the user_edited flag if it is different from the master template
+	 *
+	 * @return boolean
+	 */
+	public function isDifferentFromMaster() : bool
+	{
+		if ( $master = $this->getMasterOfThis() )
+		{
+			if ( md5( preg_replace( '#\s#', '', $this->content ) ) != md5( preg_replace( '#\s#', '', $master->content ) ) )
+			{
+				return TRUE;
+			}
+		}
+
+		return FALSE;
+	}
+
+	/**
+	 * Import User Template XML
+	 *
+	 * @param	string 								$filePath			Path to XML file
+	 * @param	string 								$fileContents		XML Contents as string
+	 * @throws	\UnexpectedValueException
+	 * @throws 	\BadMethodCallException
+	 * @return	\IPS\Http\Url\Internal|null
+	 */
+	public static function importUserTemplateXml( string $filePath=NULL, string $fileContents=NULL ):? \IPS\Http\Url\Internal
+	{
+		/* Open XML file */
+		$xml = new \IPS\Xml\XMLReader;
+
+		if( $filePath )
+		{
+			$xml->open( $filePath );
+		}
+		elseif( $fileContents )
+		{
+			if( !$xml->xml( $fileContents ) )
+			{
+				throw \UnexpectedValueException('bad_xml_string');
+			}
+		}
+		else
+		{
+			throw new \BadMethodCallException('path_or_data_missing');
+		}
+
+		$conflictKey = md5( microtime() );
+
+		$templates = \IPS\frontpage\Theme::i()->getRawTemplates( 'frontpage', NULL, NULL, \IPS\frontpage\Theme::RETURN_DATABASE_ONLY + \IPS\frontpage\Theme::RETURN_ALL );
+
+		if ( ! @$xml->read() )
+		{
+			throw new \UnexpectedValueException('xml_file_bad_format');
+		}
+		$xml->read();
+		while ( $xml->read() )
+		{
+			if ( $xml->name === 'template' )
+			{
+				$node      = new \SimpleXMLElement( $xml->readOuterXML() );
+				$attrs     = array();
+
+				foreach( $node->attributes() as $k => $v )
+				{
+					$attrs[ $k ] = (string) $v;
+				}
+
+				/* Any kids of your own? */
+				foreach( $node->children() as $k => $v )
+				{
+					$tryJson = json_decode( $v, TRUE );
+					$attrs[ $k ] =  ( $tryJson ) ? $tryJson : (string) $v;
+				}
+
+
+				if ( isset( $attrs['template_title'] ) and isset( $attrs['template_location'] ) and isset( $attrs['template_group'] ) )
+				{
+					/* Got this template? */
+					$exists = NULL;
+					if ( isset( $templates['frontpage'][ $attrs['template_location'] ][ $attrs['template_group'] ] ) )
+					{
+						foreach ( $templates['frontpage'][ $attrs['template_location'] ][ $attrs['template_group'] ] as $key => $template )
+						{
+							if ( $template['template_title'] === $attrs['template_title'] )
+							{
+								$exists = $template;
+								break;
+							}
+						}
+
+						/* Should we update it or log it as a conflict? */
+						if ( $exists !== NULL )
+						{
+							if ( $exists['template_master'] )
+							{
+								/* This is a master template bit, so it's totes fine to create a new one, as it will 'overload' this one */
+								$obj = new \IPS\frontpage\Templates;
+								$obj->location = $attrs['template_location'];
+								$obj->group = $attrs['template_group'];
+								$obj->title = $attrs['template_title'];
+								$obj->params = $attrs['template_params'];
+								$obj->content = $attrs['template_content'];
+								$obj->original_group = $attrs['template_original_group'];
+								$obj->type = $attrs['template_type'];
+								$obj->user_created = 1;
+								$obj->user_edited = (int) $obj->isDifferentFromMaster();
+								$obj->desc = '';
+								$obj->key = $exists['template_key']; // We need to re-use the already stored key so database mappings remain intact
+								$obj->save();
+							}
+							elseif ( $exists['template_user_created'] == 1 )
+							{
+								/* Ok, so this is a non-stIt useandard template. Has it been edited by this user at all? */
+								if ( $exists['template_user_edited'] )
+								{
+									/* User has edited this, so we should just log a conflict... */
+									\IPS\Db::i()->insert( 'frontpage_template_conflicts', array(
+										'conflict_key'     		=> $conflictKey,
+										'conflict_item_id'		=> $exists['template_id'],
+										'conflict_type'		    => $attrs['template_type'],
+										'conflict_location'	    => $attrs['template_location'],
+										'conflict_group'		=> $attrs['template_group'],
+										'conflict_original_group' => $attrs['template_original_group'],
+										'conflict_title'		=> $attrs['template_title'],
+										'conflict_data'		    => $attrs['template_params'],
+										'conflict_content'      => $attrs['template_content'],
+										'conflict_date'			=> time()
+									) );
+								}
+								else
+								{
+									/* Not edited, so just update */
+									try
+									{
+										$template = \IPS\frontpage\Templates::load( $exists['template_key'], 'template_key' );
+										$template->params = $attrs['template_params'];
+										$template->content = $attrs['template_content'];
+										$template->save();
+									}
+									catch( \Exception $e ) { }
+								}
+							}
+							else
+							{
+								/* This is an overloaded master template, so just update */
+								$template = \IPS\frontpage\Templates::load( $exists['template_key'], 'template_key' );
+								$template->user_edited = 1;
+								$template->params = $attrs['template_params'];
+								$template->content = $attrs['template_content'];
+								$template->save();
+							}
+						}
+					}
+
+					if ( $exists === NULL )
+					{
+						$obj = new \IPS\frontpage\Templates;
+						$obj->location = $attrs['template_location'];
+						$obj->group = $attrs['template_group'];
+						$obj->title = $attrs['template_title'];
+						$obj->params = $attrs['template_params'];
+						$obj->content = $attrs['template_content'];
+						$obj->original_group = $attrs['template_original_group'];
+						$obj->type = $attrs['template_type'];
+						$obj->user_created = 1; # Created
+						$obj->user_edited = (int) $obj->isDifferentFromMaster();
+						$obj->desc = '';
+						$obj->save();
+
+						/* Lets try and re-use the original key if we can */
+						$key = NULL;
+						if ( isset( $attrs['template_key'] ) )
+						{
+							try
+							{
+								$check = \IPS\Db::i()->select( 'template_id', 'frontpage_templates', array( 'template_key=?', $attrs['template_key'] ) )->first();
+
+								if ( $check['template_master'] == 1 and \in_array( $attrs['template_group'], \IPS\frontpage\Templates::getMasterGroups() ) )
+								{
+									/* it's OK to overload this with a user edited version */
+									$obj->user_created = 0;
+									$obj->user_edited = 1;
+
+									$key = $attrs['template_key'];
+								}
+							}
+							catch( \UnderflowException $e )
+							{
+								/* It doesn't exist! */
+								$key = $attrs['template_key'];
+							}
+						}
+
+						$obj->key = ( $key ) ? $key : $obj->location . \IPS\Http\Url\Friendly::seoTitle( $obj->group ) . '_' . \IPS\Http\Url\Friendly::seoTitle( $obj->title ) . '_' . $obj->id;
+						$obj->save();
+					}
+				}
+			}
+
+			$xml->next();
+		}
+
+		/* Check for conflicts */
+		$conflicts = \IPS\Db::i()->select( 'count(*)', 'frontpage_template_conflicts', array( 'conflict_key=?', $conflictKey ) )->first();
+		if( $conflicts )
+		{
+			return \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=conflicts&key=' . $conflictKey );
+		}
+
+		return NULL;
 	}
 
 	/**
@@ -628,9 +1093,77 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 					break;
 				}
 			}
+
+			static::$masterGroups = NULL;
+			static::$masterTemplates = NULL;
+
+			static::updateAllInheritedMasterTemplates();
 		}
 
 		return $worked;
+	}
+
+	/**
+	 * Update all inherited master templates with the new master templates
+	 *
+	 * @return void
+	 */
+	public static function updateAllInheritedMasterTemplates()
+	{
+		/* Update existing template bits */
+		foreach( \IPS\Db::i()->select( '*', 'frontpage_templates', array( 'template_master=0 and template_user_created=1 and template_user_edited=0' ) ) as $key => $template )
+		{
+			$obj = static::constructFromData( $template );
+
+			if ( $master = $obj->getMasterOfThis() )
+			{
+				$obj->content = $master->content;
+				$obj->params = $master->params;
+				$obj->save();
+			}
+		}
+
+		/* Now go through the original groups and make sure we have template bits for all */
+		$masterByGroup = array();
+
+		foreach( static::getMasterTemplates() as $template )
+		{
+			$masterByGroup[ $template['template_group'] ][ $template['template_title'] ] = $template;
+		}
+
+		$customGroups = iterator_to_array( \IPS\Db::i()->select( 'template_group, MIN(template_original_group) as template_original_group', static::$databaseTable, array( 'template_master=0 and template_original_group != template_group' ), 'template_group ASC', NULL, 'template_group' )->setKeyField('template_group')->setValueField('template_original_group') );
+
+		foreach( $customGroups as $customGroup => $masterGroup )
+		{
+			if ( $masterGroup )
+			{
+				$groupByGroup = array();
+				foreach ( \IPS\Db::i()->select( '*', static::$databaseTable, array('template_group=?', $customGroup) ) as $bit )
+				{
+					$groupByGroup[$bit['template_title']] = $bit;
+				}
+
+				/* Now, see if we're missing any */
+				foreach( $masterByGroup[ $masterGroup ] as $title => $template )
+				{
+					if ( ! \in_array( $title, array_keys( $groupByGroup ) ) )
+					{
+						$copy = $template;
+						foreach( array( 'template_id', 'template_file_object', 'bit_key' ) as $field )
+						{
+							unset( $copy[ $field ] );
+						}
+
+						$copy['template_master'] = 0;
+						$copy['template_user_created'] = 1;
+						$copy['template_group'] = $customGroup;
+						$copy['template_key'] = $copy['template_location'] . '_' . $customGroup . '_' . $title;
+
+						\IPS\Db::i()->insert( 'frontpage_templates', $copy );
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -677,9 +1210,13 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 	 */
 	public function get__inherited()
 	{
-		if ( $this->user_created )
+		if ( $this->user_created and ! \in_array( $this->original_group, static::getMasterGroups() ) )
 		{
 			return 'custom';
+		}
+		elseif ( $this->user_created and ! $this->user_edited )
+		{
+			return 'inherit';
 		}
 		elseif ( $this->user_edited )
 		{
@@ -741,31 +1278,10 @@ class _Templates extends \IPS\Patterns\ActiveRecord
 			$this->file_object = NULL;
 		}
 
-		/* Should we copy this to a new template and then save it? */
-		if ( ! $this->user_edited )
-		{
-			/* Infinite loop is only cool as Apple's address */
-			$clone = new \IPS\frontpage\Templates;
-			
-			$clone->_data   = $this->_data;
-			$clone->changed = $this->changed;
-			
-			$clone->id = NULL;
-			$clone->user_edited = 1;
-			$clone->master = 0;
-			$clone->_new = TRUE;
-			$clone->save();
-
-			$key = \strtolower( 'template_frontpage_' . \IPS\frontpage\Theme::makeBuiltTemplateLookupHash( 'frontpage', $clone->location, $clone->group ) . '_' . $clone->group );
-		}
-		else
-		{
-			$key = \strtolower( 'template_frontpage_' . \IPS\frontpage\Theme::makeBuiltTemplateLookupHash( 'frontpage', $this->location, $this->group ) . '_' . $this->group );
-
-			parent::save();
-		}
+		parent::save();
 
 		/* Clear store */
+		$key = \strtolower( 'template_frontpage_' . \IPS\frontpage\Theme::makeBuiltTemplateLookupHash( 'frontpage', $this->location, $this->group ) . '_' . $this->group );
 		unset( \IPS\Data\Store::i()->$key );
 	}
 }
