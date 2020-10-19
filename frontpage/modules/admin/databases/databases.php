@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                       https://www.devcu.com/donate
  *
  * @brief		Databases Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     02 MAY 2019
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -45,6 +45,11 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 class _databases extends \IPS\Node\Controller
 {
 	/**
+	 * @brief	Has been CSRF-protected
+	 */
+	public static $csrfProtected = TRUE;
+	
+	/**
 	 * Node Class
 	 */
 	protected $nodeClass = '\IPS\frontpage\Databases';
@@ -73,40 +78,40 @@ class _databases extends \IPS\Node\Controller
 
 		/* Columns */
 		$table->joins = array(
-			array( 'select' => 'w.word_custom as database_name', 'from' => array( 'core_sys_lang_words', 'w' ), 'where' => "w.word_key=CONCAT( 'content_db_', frontpage_databases.database_id ) AND w.lang_id=" . \IPS\Member::loggedIn()->language()->id )
+			array( 'select' => 'w.word_custom', 'from' => array( 'core_sys_lang_words', 'w' ), 'where' => "w.word_key=CONCAT( 'content_db_', frontpage_databases.database_id ) AND w.lang_id=" . \IPS\Member::loggedIn()->language()->id )
 		);
 
-		$table->include = array( 'database_name', 'database_record_count', 'database_category_count' );
+		$table->include = array( 'word_custom', 'database_record_count', 'database_category_count' );
 		$table->widths  = array(
-			'database_name' => '50'
+			'word_custom' => '50'
 		);
 		
-		$table->mainColumn = 'database_name';
-		$table->quickSearch = 'database_name';
+		$table->mainColumn = 'word_custom';
+		$table->quickSearch = 'word_custom';
 		
-		$table->sortBy = $table->sortBy ?: 'database_name';
+		$table->sortBy = $table->sortBy ?: 'word_custom';
 		$table->sortDirection = $table->sortDirection ?: 'asc';
 		
 		/* Parsers */
 		$table->parsers = array(
-				'database_name'	=> function( $val, $row )
+				'word_custom'	=> function( $val, $row )
 				{
-					$content     = NULL;
+					$fpage     = NULL;
 					$database = NULL;
 
 					try
 					{
 						$database = \IPS\frontpage\Databases::load( $row['database_id'] );
 
-						if ( $database->content_id > 0 )
+						if ( $database->fpage_id > 0 )
 						{
 							try
 							{
-								$content = \IPS\frontpage\Fpages\Fpage::load( $database->content_id );
+								$fpage = \IPS\frontpage\Fpages\Fpage::load( $database->fpage_id );
 							}
 							catch ( \OutOfRangeException $ex )
 							{
-								$database->content_id = 0;
+								$database->fpage_id = 0;
 								$database->save();
 							}
 						}
@@ -116,7 +121,7 @@ class _databases extends \IPS\Node\Controller
 
 					}
 
-					return \IPS\Theme::i()->getTemplate( 'databases' )->manageDatabaseName( $database, $row, $content );
+					return \IPS\Theme::i()->getTemplate( 'databases' )->manageDatabaseName( $database, $row, $fpage );
 				},
 				'database_category_count' => function( $val, $row )
 				{
@@ -244,7 +249,7 @@ class _databases extends \IPS\Node\Controller
 	}
 
 	/**
-	 * Add a theme dialog
+	 * Add a database dialog
 	 *
 	 * @return void
 	 */
@@ -268,7 +273,7 @@ class _databases extends \IPS\Node\Controller
 				move_uploaded_file( $values['frontpage_database_import'], $tempFile );
 
 				/* Initate a redirector */
-				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=databases&do=import' )->setQueryString( array( 'file' => $tempFile, 'key' => md5_file( $tempFile ) ) ) );
+				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=databases&do=import' )->setQueryString( array( 'file' => $tempFile, 'key' => md5_file( $tempFile ) ) )->csrf() );
 			}
 			else
 			{
@@ -287,6 +292,7 @@ class _databases extends \IPS\Node\Controller
 	public function import()
 	{
 		\IPS\Dispatcher::i()->checkAcpPermission( 'databases_add' );
+		\IPS\Session::i()->csrfCheck();
 
 		if ( !file_exists( \IPS\Request::i()->file ) or md5_file( \IPS\Request::i()->file ) !== \IPS\Request::i()->key )
 		{
@@ -294,7 +300,7 @@ class _databases extends \IPS\Node\Controller
 		}
 
 		\IPS\Output::i()->output = new \IPS\Helpers\MultipleRedirect(
-			\IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=databases&do=import' )->setQueryString( array( 'file' => \IPS\Request::i()->file, 'key' =>  \IPS\Request::i()->key ) ),
+			\IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=databases&do=import' )->setQueryString( array( 'file' => \IPS\Request::i()->file, 'key' =>  \IPS\Request::i()->key ) )->csrf(),
 			function( $data )
 			{
 				/* Open XML file */
@@ -313,7 +319,7 @@ class _databases extends \IPS\Node\Controller
 				if ( !\is_array( $data ) )
 				{
 					$database = new \IPS\frontpage\Databases;
-					$database->key  = mt_rand();
+					$database->key  = 'import_' . mt_rand();
 					$database->save();
 
 					/* Set default perms, these will be editable post DB import */
@@ -980,7 +986,7 @@ class _databases extends \IPS\Node\Controller
 			}
 
 			/* Categories */
-			$textFields   = array( 'category_name', 'category_description', 'category_meta_keywords', 'category_meta_description', 'category_content_title' );
+			$textFields   = array( 'category_name', 'category_description', 'category_meta_keywords', 'category_meta_description', 'category_fpage_title' );
 			$removeFields = array( 'category_database_id', 'category_last_record_id', 'category_last_record_date', 'category_last_record_member', 'category_last_record_name', 'category_last_record_seo_name', 'category_records', 'category_record_comments',
 								   'category_record_comments_queued', 'category_rss_cache', 'category_rss_cached', 'category_rss_exclude', 'category_forum_override', 'category_forum_record', 'category_forum_comments', 'category_forum_delete', 'category_forum_suffix', 'category_forum_prefix',
 							       'category_forum_forum', 'category_full_path', 'category_last_title', 'category_last_seo_title');
@@ -1139,6 +1145,31 @@ class _databases extends \IPS\Node\Controller
 	}
 
 	/**
+	 * Permissions
+	 *
+	 * @return	void
+	 */
+	protected function permissions()
+	{
+		parent::permissions();
+
+		$database = \IPS\frontpage\Databases::load( \IPS\Request::i()->id );
+
+		try
+		{
+			if( $database->fpage_id AND \IPS\frontpage\Pages\Page::load( $database->fpage_id )->permissions()['perm_view'] != '*' )
+			{
+				/* We want the message to show at the top, so get our output as we will start over */
+				$output = \IPS\Output::i()->output;
+
+				\IPS\Output::i()->output = \IPS\Theme::i()->getTemplate( 'global', 'core' )->message( \IPS\Member::loggedIn()->language()->addToStack('database_fpage_permissions_restrict', FALSE, array( 'sprintf' => array( $database->fpage_id ) ) ), 'warning' );
+				\IPS\Output::i()->output .= $output;
+			}
+		}
+		catch( \OutOfRangeException $e ){}
+	}
+
+	/**
 	 * Promote
 	 *
 	 * @return void
@@ -1172,8 +1203,8 @@ class _databases extends \IPS\Node\Controller
 		}
 
 		/* Display */
-		\IPS\Output::i()->output .= \IPS\Theme::i()->getTemplate( 'global', 'core', 'admin' )->block( \IPS\Member::loggedIn()->language()->addToStack('frontpage_contents_settings'), $form, FALSE );
-		\IPS\Output::i()->title  = \IPS\Member::loggedIn()->language()->addToStack('frontpage_contents_settings');
+		\IPS\Output::i()->output .= \IPS\Theme::i()->getTemplate( 'global', 'core', 'admin' )->block( \IPS\Member::loggedIn()->language()->addToStack('frontpage_fpages_settings'), $form, FALSE );
+		\IPS\Output::i()->title  = \IPS\Member::loggedIn()->language()->addToStack('frontpage_fpages_settings');
 	}
 
 	/**
@@ -1183,6 +1214,8 @@ class _databases extends \IPS\Node\Controller
 	 */
 	public function rebuildTopicContent()
 	{
+		\IPS\Session::i()->csrfCheck();
+		
 		if ( isset( \IPS\Request::i()->process ) )
 		{
 			\IPS\Task::queue( 'frontpage', 'ResyncTopicContent', array( 'databaseId' => \IPS\Request::i()->id ), 3, array( 'databaseId' ) );
@@ -1203,6 +1236,7 @@ class _databases extends \IPS\Node\Controller
 	{
 		if ( isset( \IPS\Request::i()->process ) )
 		{
+			\IPS\Session::i()->csrfCheck();
 			\IPS\Task::queue( 'core', 'RebuildItemCounts', array( 'class' => 'IPS\frontpage\Records' . \IPS\Request::i()->id ), 3, array( 'class' ) );
 			\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=databases&do=form&id=' . \IPS\Request::i()->id ), 'database_rebuild_added' );
 		}
@@ -1215,6 +1249,7 @@ class _databases extends \IPS\Node\Controller
 	/**
 	 * Add/Edit
 	 *
+	 * @csrfChecked	Uses $this->_getDatabaseForm() which uses Form Helper 7 Oct 2019
 	 * @return	void
 	 */
 	public function form()
@@ -1345,7 +1380,7 @@ class _databases extends \IPS\Node\Controller
 			$current->template_form       = $values['database_template_form'];
 			$current->template_featured   = $values['database_template_featured'];
 			$current->cat_index_type      = $values['database_cat_index_type'];
-			$current->use_as_content_title   = $values['database_use_as_content_title'];
+			$current->use_as_fpage_title   = $values['database_use_as_fpage_title'];
 
 			$current->all_editable   = (int) $values['database_all_editable'];
 			$current->revisions      = (int) $values['database_revisions'];
@@ -1365,11 +1400,8 @@ class _databases extends \IPS\Node\Controller
 			{
 				$current->tags_enabled    = (int) $values['database_tags_enabled'];
 				$current->tags_noprefixes = !(bool) $values['database_tags_noprefixes'];
-				
-				if ( ! \IPS\Settings::i()->tags_open_system )
-				{
-					$current->tags_predefined = ( \is_array( $values['database_tags_predefined'] ) ) ? implode( ',', array_filter( array_map( 'trim', $values['database_tags_predefined'] ) ) ) : NULL;
-				}
+				$current->tags_predefined = ( \is_array( $values['database_tags_predefined'] ) ) ? implode( ',', array_filter( array_map( 'trim', $values['database_tags_predefined'] ) ) ) : NULL;
+
 			}
 
 			$categories = 0;
@@ -1397,6 +1429,16 @@ class _databases extends \IPS\Node\Controller
 			
 			if ( \IPS\Application::appIsEnabled( 'forums' ) )
 			{
+				/* Are we changing where comments go? */
+				if ( !$new AND ( (int) $current->forum_record != (int) $values['database_forum_record'] OR (int) $current->forum_comments != (int) $values['database_forum_comments'] ) )
+				{
+					\IPS\Task::queue( 'cms', 'MoveComments', array(
+						'databaseId'	=> $current->id,
+						'to'				=> ( $values['database_forum_comments'] AND $values['database_forum_record'] ) ? 'forums' : 'fpages',
+						'deleteTopics'	=> (bool) ( !$values['database_forum_record'] )
+					), 1, array( 'databaseId', 'to' ) );
+				}
+				
 				$current->forum_record   = (int) $values['database_forum_record']; 
 				$current->forum_comments = (int) $values['database_forum_comments'];
 				$current->forum_forum    = ( ! $values['database_forum_forum']  ) ? 0 : $values['database_forum_forum']->id;
@@ -1410,6 +1452,9 @@ class _databases extends \IPS\Node\Controller
 				$current->forum_comments	= 0;
 				$current->forum_delete		= 0;
 			}
+			
+			/* SEO */
+			$current->canonical_flag = (int) $values['database_canonical_flag'];
 
 			$fieldSettingJson = array();
 
@@ -1451,42 +1496,43 @@ class _databases extends \IPS\Node\Controller
 				$category->allow_rating = $values['category_allow_rating'];
 				$category->can_view_others = $values['category_can_view_others'];
 				$category->save();
+				$category->cloneDatabasePermissions();
 			}
 			
 			if ( $new )
 			{
-				if ( $values['database_create_content'] === 'new' )
+				if ( $values['database_create_fpage'] === 'new' )
 				{
-					$contentValues = array();
+					$fpageValues = array();
 
 					foreach( $values as $k => $v )
 					{
-						if( mb_strpos( $k, 'content_' ) === 0 )
+						if( mb_strpos( $k, 'fpage_' ) === 0 )
 						{
-							$contentValues[ $k ]	= $v;
+							$fpageValues[ $k ]	= $v;
 						}
 					}
 
-					if ( $values['content_type'] === 'html' )
+					if ( $values['fpage_type'] === 'html' )
 					{
-						$contentValues['content_content'] = '{database="' . $current->id . '"}';
-						$contentValues['content_template'] = '';
+						$fpageValues['fpage_content'] = '{database="' . $current->id . '"}';
+						$fpageValues['fpage_template'] = '';
 					}
-					$contentValues['content_folder_id'] = $contentValues['content_folder_id'] ?: 0;
+					$fpageValues['fpage_folder_id'] = $fpageValues['fpage_folder_id'] ?: 0;
 
-					$newContent = \IPS\frontpage\Fpages\Fpage::createFromForm( $contentValues, 'html' );
+					$newFpage = \IPS\frontpage\Fpages\Fpage::createFromForm( $fpageValues, 'html' );
 
-					if ( $values['content_type'] !== 'html' )
+					if ( $values['fpage_type'] !== 'html' )
 					{
-						\IPS\Db::i()->insert( 'frontpage_content_widget_areas', array(
-							'area_content_id'     => $newContent->id,
+						\IPS\Db::i()->insert( 'frontpage_fpage_widget_areas', array(
+							'area_fpage_id'     => $newFpage->id,
 							'area_widgets'     => json_encode( array( array( 'app' => 'frontpage', 'key' => 'Database', 'unique' => mt_rand(), 'configuration' => array( 'database' => $current->id ) ) ) ),
 							'area_area'        => 'col1',
 							'area_orientation' => 'horizontal'
 						) );
 					}
 					
-					$current->content_id = $newContent->id;
+					$current->fpage_id = $newFpage->id;
 					$current->save();
 				}
 			}
@@ -1508,7 +1554,8 @@ class _databases extends \IPS\Node\Controller
 
             \IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=databases' ), 'saved' );
 		}
-	
+		
+		\IPS\Output::i()->jsFiles = array_merge( \IPS\Output::i()->jsFiles, \IPS\Output::i()->js( 'admin_databases.js', 'frontpage', 'admin' ) );
 		\IPS\Output::i()->output = \IPS\Theme::i()->getTemplate( 'global', 'core' )->block( $current ? "content_db_" . $current->id : 'add', $form, FALSE );
 		\IPS\Output::i()->title  = ( $current ) ? \IPS\Member::loggedIn()->language()->addToStack('frontpage_editing_database', NULL, array( 'sprintf' => array( $current->_title ) ) ) : \IPS\Member::loggedIn()->language()->addToStack('frontpage_adding_database');
 	}
@@ -1558,10 +1605,10 @@ class _databases extends \IPS\Node\Controller
 	        \IPS\Member::loggedIn()->language()->words['database_use_categories_warning'] =  \IPS\Member::loggedIn()->language()->addToStack( 'database_use_categories_impossible', NULL, array( 'sprintf' => array( $current->numberOfCategories() ) ) );
         }
         
-        $form->add( new \IPS\Helpers\Form\Radio( 'database_use_as_content_title' , $current ? $current->use_as_content_title : 1, FALSE, array(
+        $form->add( new \IPS\Helpers\Form\Radio( 'database_use_as_fpage_title' , $current ? $current->use_as_fpage_title : 1, FALSE, array(
             'options' => array(
-	            1	=> 'database_use_as_content_title_yes',
-	            0	=> 'database_use_as_content_title_no'
+	            1	=> 'database_use_as_fpage_title_yes',
+	            0	=> 'database_use_as_fpage_title_no'
             )
         ) ) );
 		
@@ -1668,10 +1715,10 @@ class _databases extends \IPS\Node\Controller
 
 		$form->addHeader( 'frontpage_database_form_display' );
 
-		$form->add( new \IPS\Helpers\Form\Select( 'database_template_categories', ! empty( $current ) ? $current->template_categories : NULL, FALSE, array( 'options' => $templatesCat ), NULL, NULL, NULL, 'database_template_categories' ) );
-		$form->add( new \IPS\Helpers\Form\Select( 'database_template_listing'   , ! empty( $current ) ? $current->template_listing    : NULL, FALSE, array( 'options' => $templatesList ) ) );
-		$form->add( new \IPS\Helpers\Form\Select( 'database_template_display'   , ! empty( $current ) ? $current->template_display    : NULL, FALSE, array( 'options' => $templatesDisplay ) ) );
-		$form->add( new \IPS\Helpers\Form\Select( 'database_template_form'      , ! empty( $current ) ? $current->template_form       : NULL, FALSE, array( 'options' => $templatesForm ) ) );
+		$form->add( new \IPS\Helpers\Form\Select( 'database_template_categories', ! empty( $current ) ? $current->template_categories : NULL, FALSE, array( 'options' => $templatesCat ), NULL, NULL, \IPS\Theme::i()->getTemplate( 'databases', 'frontpage' )->templateGoButton('database_template_categories'), 'database_template_categories' ) );
+		$form->add( new \IPS\Helpers\Form\Select( 'database_template_listing'   , ! empty( $current ) ? $current->template_listing    : NULL, FALSE, array( 'options' => $templatesList ), NULL, NULL, \IPS\Theme::i()->getTemplate( 'databases', 'frontpage' )->templateGoButton('database_template_listing'), 'database_template_listing' ) );
+		$form->add( new \IPS\Helpers\Form\Select( 'database_template_display'   , ! empty( $current ) ? $current->template_display    : NULL, FALSE, array( 'options' => $templatesDisplay ), NULL, NULL, \IPS\Theme::i()->getTemplate( 'databases', 'frontpage' )->templateGoButton('database_template_display'), 'database_template_display' ) );
+		$form->add( new \IPS\Helpers\Form\Select( 'database_template_form'      , ! empty( $current ) ? $current->template_form       : NULL, FALSE, array( 'options' => $templatesForm ), NULL, NULL, \IPS\Theme::i()->getTemplate( 'databases', 'frontpage' )->templateGoButton('database_template_form'), 'database_template_form' ) );
 
 		$form->add( new \IPS\Helpers\Form\Text( 'database_key', ! empty( $current ) ? $current->key : FALSE, FALSE, array(), function( $val )
 		{
@@ -1767,10 +1814,7 @@ class _databases extends \IPS\Node\Controller
 
 			$form->add( new \IPS\Helpers\Form\YesNo( 'database_tags_enabled'   , $current ? $current->tags_enabled : FALSE, FALSE, array( 'togglesOn' => array( 'database_tags_noprefixes', 'database_tags_predefined' ) ), NULL, NULL, NULL, 'database_tags_enabled' ) );
 			$form->add( new \IPS\Helpers\Form\YesNo( 'database_tags_noprefixes', $current ? ! $current->tags_noprefixes : FALSE, FALSE, array(), NULL, NULL, NULL, 'database_tags_noprefixes' ) );
-			if ( ! \IPS\Settings::i()->tags_open_system )
-			{
-				$form->add( new \IPS\Helpers\Form\Text( 'database_tags_predefined', $current ? $current->tags_predefined: '', FALSE, array( 'autocomplete' => array( 'unique' => 'true' ), 'nullLang' => 'database_tags_predefined_unlimited' ), NULL, NULL, NULL, 'database_tags_predefined' ) );
-			}
+			$form->add( new \IPS\Helpers\Form\Text( 'database_tags_predefined', $current ? $current->tags_predefined: '', FALSE, array( 'autocomplete' => array( 'unique' => 'true' ), 'nullLang' => 'database_tags_predefined_unlimited' ), NULL, NULL, NULL, 'database_tags_predefined' ) );
 		}
 		
 		$form->addHeader( 'content_database_form_options_fields' );
@@ -1819,19 +1863,19 @@ class _databases extends \IPS\Node\Controller
 		{
 			$form->addTab( 'content_database_form_options_forums' );
 
-			$databaseContent = NULL;
+			$databaseFpage = NULL;
 			try
 			{
 				if ( $current )
 				{
-					$databaseContent = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $current->id );
+					$databaseFpage = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $current->id );
 				}
 			}
 			catch( \OutOfRangeException $e ) { }
 
-			if ( ! $databaseContent )
+			if ( ! $databaseFpage )
 			{
-				$form->addMessage( 'frontpage_no_db_content_no_forum_link', 'ipsMessage ipsMessage_info' );
+				$form->addMessage( 'frontpage_no_db_fpage_no_forum_link', 'ipsMessage ipsMessage_info' );
 			}
 			
 			if ( $current )
@@ -1879,68 +1923,79 @@ class _databases extends \IPS\Node\Controller
 			$form->add( new \IPS\Helpers\Form\YesNo( 'database_forum_delete' , $current ? $current->forum_delete : FALSE, FALSE, array(), NULL, NULL, NULL, 'database_forum_delete' ) );
 		}
 		
+		/* SEO */
+		$form->addTab( 'content_database_form_seo' );
+		$form->addHeader( 'database_canonical_header' );
+		
+		$form->add( new \IPS\Helpers\Form\Radio( 'database_canonical_flag', ! empty( $current ) ? $current->canonical_flag : NULL, FALSE, array(
+			'options' => array(
+					'0'  => 'database_canonical_flag_0',
+					'1'  => 'database_canonical_flag_1'
+			)
+		) ) );
+		
 		if ( ! $current )
 		{
-			$form->addTab( 'content_database_form_options_content' );
-			$form->addMessage( 'content_database_form_options_content_msg' );
+			$form->addTab( 'content_database_form_options_fpage' );
+			$form->addMessage( 'content_database_form_options_fpage_msg' );
 			
-			$contentToggles    = array();
-			$contentFormFields = array();
+			$fpageToggles    = array();
+			$fpageFormFields = array();
 			
 			foreach( \IPS\frontpage\Fpages\Fpage::formElements() as $name => $field )
 			{
-				if ( $name === 'content_name' )
+				if ( $name === 'fpage_name' )
 				{
 					/* Overwrite field */
-					$field = new \IPS\Helpers\Form\Translatable( 'content_name', FALSE, NULL, array( 'app' => 'frontpage', 'key' => NULL, 'maxLength' => 64 ), function( $val )
+					$field = new \IPS\Helpers\Form\Translatable( 'fpage_name', FALSE, NULL, array( 'app' => 'frontpage', 'key' => NULL, 'maxLength' => 64 ), function( $val )
 					{
-						if ( !trim( $val[ \IPS\Lang::defaultLanguage() ] ) AND \IPS\Request::i()->database_create_content === 'new' )
+						if ( !trim( $val[ \IPS\Lang::defaultLanguage() ] ) AND \IPS\Request::i()->database_create_fpage === 'new' )
 						{
 							throw new \DomainException('form_required');
 						}
-					}, NULL, NULL, 'content_name' );
+					}, NULL, NULL, 'fpage_name' );
 				}
 
-				if ( $name !== 'content_content' AND $name !== 'tab_content' )
+				if ( $name !== 'fpage_content' AND $name !== 'tab_content' )
 				{
-					$contentToggles[] = $name;
-					$contentFormFields[ $name ] = $field;
+					$fpageToggles[] = $name;
+					$fpageFormFields[ $name ] = $field;
 				}
 
-				if ( $name === 'content_folder_id' )
+				if ( $name === 'fpage_folder_id' )
 				{
-					$contentFormFields['content_type'] = new \IPS\Helpers\Form\Radio(
-						'content_type', 'builder', FALSE, array(
+					$fpageFormFields['fpage_type'] = new \IPS\Helpers\Form\Radio(
+						'fpage_type', 'builder', FALSE, array(
 						'options'  => array(
-							'builder' => 'content_type_builder',
-							'html'    => 'content_type_manual'
+							'builder' => 'fpage_type_builder',
+							'html'    => 'fpage_type_manual'
 						),
 						'descriptions' => array(
-							'builder' => 'content_type_builder_desc',
-							'html'    => 'content_type_manual_custom_desc'
+							'builder' => 'fpage_type_builder_desc',
+							'html'    => 'fpage_type_manual_custom_desc'
 						),
 						'toggles' => array(
-							'builder' => array( 'content_template' ),
-							'html'    => array( 'content_show_sidebar', 'content_wrapper_template', 'content_ipb_wrapper' )
+							'builder' => array( 'fpage_template' ),
+							'html'    => array( 'fpage_show_sidebar', 'fpage_wrapper_template', 'fpage_ipb_wrapper' )
 						)
-					), NULL, NULL, NULL, 'content_type'
+					), NULL, NULL, NULL, 'fpage_type'
 					);
 
-					$contentToggles[] = 'content_type';
+					$fpageToggles[] = 'fpage_type';
 				}
 			}
 			
-			$form->add( new \IPS\Helpers\Form\Radio( 'database_create_content', 'existing', FALSE, array(
+			$form->add( new \IPS\Helpers\Form\Radio( 'database_create_fpage', 'existing', FALSE, array(
 				'options'   => array(
-					'existing' => 'database_create_content_existing',
-					'new'	   => 'database_create_content_new'
+					'existing' => 'database_create_fpage_existing',
+					'new'	   => 'database_create_fpage_new'
 				),
 				'toggles' => array(
-					'new' => $contentToggles
+					'new' => $fpageToggles
 				)
-			), NULL, NULL, NULL, 'database_create_content' ) );
+			), NULL, NULL, NULL, 'database_create_fpage' ) );
 			
-			foreach( $contentFormFields as $name => $field )
+			foreach( $fpageFormFields as $name => $field )
 			{
 				if ( \is_array( $field ) )
 				{

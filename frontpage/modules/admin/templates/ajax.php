@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                       https://www.devcu.com/donate
  *
  * @brief		Customization AJAX actions
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -44,6 +44,11 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
  */
 class _ajax extends \IPS\Dispatcher\Controller
 {
+	/**
+	 * @brief	Has been CSRF-protected
+	 */
+	public static $csrfProtected = TRUE;
+	
 	/**
 	 * Return a CSS or HTML menu
 	 *
@@ -181,7 +186,112 @@ class _ajax extends \IPS\Dispatcher\Controller
 		}
 		else
 		{
-			\IPS\Output::i()->sendOutput( \IPS\Theme::i()->getTemplate( 'global', 'core' )->blankTemplate( \IPS\Theme::i()->getTemplate( 'templates', 'frontpage', 'admin' )->viewTemplate( $templateArray ) ), 200, 'text/html', \IPS\Output::i()->httpHeaders );
+			\IPS\Output::i()->sendOutput( \IPS\Theme::i()->getTemplate( 'global', 'core' )->blankTemplate( \IPS\Theme::i()->getTemplate( 'templates', 'frontpage', 'admin' )->viewTemplate( $templateArray ) ), 200, 'text/html' );
 		}
+	}
+	
+	/**
+	 * [AJAX] Search templates
+	 *
+	 * @return	void
+	 */
+	public function searchtemplates()
+	{
+		\IPS\Dispatcher::i()->checkAcpPermission( 'template_manage' );
+				
+		$where = array();
+		if ( \IPS\Request::i()->term )
+		{
+			$where[] = array( '( LOWER(template_title) LIKE ? OR LOWER(template_content) LIKE ? )', '%' . mb_strtolower( \IPS\Request::i()->term ) . '%', '%' . mb_strtolower( \IPS\Request::i()->term ) . '%' );
+		}
+	
+		if ( ! \in_array( 'custom', explode( ',', \IPS\Request::i()->filters ) ) )
+		{
+			$where[] = array( 'template_master=1 OR (template_user_created=1 and template_user_edited=0)' );
+		}
+		
+		if ( ! \in_array( 'unmodified', explode( ',', \IPS\Request::i()->filters ) ) )
+		{
+			$where[] = array( 'template_user_created=1 and template_user_edited=1' );
+		}
+		
+		$select = \IPS\Db::i()->select(
+			'*',
+			'frontpage_templates',
+			$where,
+			'template_location, template_group, template_title, template_master desc'
+		);
+
+		$return = array();
+		foreach( $select as $result )
+		{
+			$return[ $result['template_location'] ][ $result['template_group'] ][ $result['template_key'] ] = $result['template_title'];
+		}
+		
+		\IPS\Output::i()->json( $return );
+	}
+	
+	/**
+	 * Load Tags
+	 *
+	 * @return	void
+	 */
+	public function loadTags(): void
+	{
+		$page = NULL;
+		if ( isset( \IPS\Request::i()->fpageId ) )
+		{
+			try
+			{
+				$page = \IPS\frontpage\Fpages\Fpage::load( \IPS\Request::i()->fpageId );
+			}
+			catch( \OutOfRangeException $e ) {}
+		}
+		
+		$tags		= array();
+		$tagLinks	= array();
+
+		if ( $page and $fpage->id == \IPS\Settings::i()->frontpage_error_page )
+		{
+			$tags['frontpage_error_fpage']['{error_message}'] = 'frontpage_error_fpage_message';
+			$tags['frontpage_error_fpage']['{error_code}']    = 'frontpage_error_fpage_code';
+		}
+
+		foreach( \IPS\frontpage\Databases::roots( NULL, NULL ) as $id => $db )
+		{
+			if ( ! $db->fpage_id )
+			{
+				$tags['frontpage_tag_databases']['{database="' . $db->key . '"}'] = $db->_title;
+			}
+		}
+		
+		foreach( \IPS\frontpage\Blocks\Block::roots( NULL, NULL ) as $id => $block )
+		{
+			$tags['frontpage_tag_blocks']['{block="' . $block->key . '"}'] = $block->_title;
+		}
+
+		foreach( \IPS\Db::i()->select( '*', 'frontpage_fpages', NULL, 'fpage_full_path ASC', array( 0, 50 ) ) as $fpage )
+		{
+			$tags['frontpage_tag_fpages']['{fpageurl="' . $fpage['fpage_full_path'] . '"}' ] = \IPS\Member::loggedIn()->language()->addToStack( \IPS\frontpage\Fpages\Fpage::$titleLangPrefix . $fpage['fpage_id'] );
+		}
+		
+		/* If we can manage words, then the header needs to always show */
+		if (  \IPS\Member::loggedIn()->hasAcpRestriction( 'core', 'languages', 'lang_words' ) )
+		{
+			$tags['frontpage_tag_lang'] = array();
+			$tagLinks['frontpage_tag_lang']	= array(
+				'icon'		=> 'plus',
+				'title'		=> \IPS\Member::loggedIn()->language()->addToStack('add_word'),
+				'link'		=> \IPS\Http\Url::internal( "app=core&module=languages&controller=languages&do=addWord" ),
+				'data'		=> array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack( 'add_word' ), 'ipsDialog-remoteSubmit' => TRUE, 'action' => "wordForm" )
+			);
+		}
+		
+		foreach( \IPS\Db::i()->select( '*', 'core_sys_lang_words', array( "word_is_custom=? AND lang_id=?", 1, \IPS\Member::loggedIn()->language()->_id ) ) AS $lang )
+		{
+			$tags['frontpage_tag_lang']['{lang="' . $lang['word_key'] . '"}'] = $lang['word_custom'] ?: $lang['word_default'];
+		}
+		
+		\IPS\Output::i()->sendOutput( \IPS\Theme::i()->getTemplate( 'global', 'core' )->blankTemplate( \IPS\Theme::i()->getTemplate( 'forms', 'core', 'global' )->editorTags( $tags, $tagLinks ) ), 200, 'text/html' );
 	}
 }

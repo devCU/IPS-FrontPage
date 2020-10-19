@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                       https://www.devcu.com/donate
  *
  * @brief		FrontPage Media Management
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -44,6 +44,11 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
  */
 class _media extends \IPS\Node\Controller
 {
+	/**
+	 * @brief	Has been CSRF-protected
+	 */
+	public static $csrfProtected = TRUE;
+	
 	/**
 	 * Node Class
 	 */
@@ -96,6 +101,8 @@ class _media extends \IPS\Node\Controller
 	 */
 	public function deleteByFileIds()
 	{
+		\IPS\Session::i()->csrfCheck();
+		
 		if ( isset( \IPS\Request::i()->fileIds ) )
 		{
 			$ids = \IPS\Request::i()->fileIds;
@@ -122,7 +129,7 @@ class _media extends \IPS\Node\Controller
 	}
 	
 	/**
-	 * Show the templates tree
+	 * Show the pages tree
 	 *
 	 * @return	string
 	 */
@@ -155,7 +162,7 @@ class _media extends \IPS\Node\Controller
 					}
 	
 					if( \IPS\Request::i()->isAjax() ){
-						\IPS\Output::i()->sendOutput( json_encode( $rows ), 200, 'application/json', \IPS\Output::i()->httpHeaders );
+						\IPS\Output::i()->sendOutput( json_encode( $rows ), 200, 'application/json' );
 					}
 	
 					return $data;
@@ -200,7 +207,7 @@ class _media extends \IPS\Node\Controller
 					}
 	
 					if( \IPS\Request::i()->isAjax() ){
-						\IPS\Output::i()->sendOutput( json_encode( $rows ), 200, 'application/json', \IPS\Output::i()->httpHeaders );
+						\IPS\Output::i()->sendOutput( json_encode( $rows ), 200, 'application/json' );
 					}
 	
 					return $rows;
@@ -216,7 +223,7 @@ class _media extends \IPS\Node\Controller
 			
 			if( \IPS\Request::i()->isAjax() )
 			{
-				\IPS\Output::i()->sendOutput( $output, 200, 'text/html', \IPS\Output::i()->httpHeaders );
+				\IPS\Output::i()->sendOutput( $output, 200, 'text/html' );
 			}
 			else
 			{
@@ -249,7 +256,7 @@ class _media extends \IPS\Node\Controller
 		$form = new \IPS\Helpers\Form( 'form', 'upload' );
 		$form->class = 'ipsForm_vertical ipsForm_noLabels';
 			
-		$form->add( new \IPS\Helpers\Form\Upload( 'media_filename', NULL, FALSE, array( 'allowedFileTypes' => array_merge( \IPS\File::$safeFileExtensions, array( 'pdf' ) ), 'obscure' => FALSE, 'maxFileSize' => 5, 'storageExtension' => 'frontpage_Media', 'storageContainer' => 'fpages_media', 'multiple' => FALSE, 'minimize' => FALSE ), NULL, NULL, NULL, 'media_filename' ) );
+		$form->add( new \IPS\Helpers\Form\Upload( 'media_filename', NULL, FALSE, array( 'allowedFileTypes' => array_merge( \IPS\File::$safeFileExtensions, array( 'pdf' ) ), 'obscure' => FALSE, 'storageExtension' => 'frontpage_Media', 'storageContainer' => 'fpages_media', 'multiple' => FALSE, 'minimize' => FALSE ), NULL, NULL, NULL, 'media_filename' ) );
 
 		if ( $values = $form->values() )
 		{
@@ -298,7 +305,7 @@ class _media extends \IPS\Node\Controller
 					}
 				}
 
-				\IPS\Output::i()->sendOutput( json_encode( array( 'fileID' => $media->id, 'folderID' => $media->parent, 'rows' => $rows ) ), 200, 'application/json', \IPS\Output::i()->httpHeaders );
+				\IPS\Output::i()->sendOutput( json_encode( array( 'fileID' => $media->id, 'folderID' => $media->parent, 'rows' => $rows ) ), 200, 'application/json' );
 			}
 			else
 			{
@@ -319,7 +326,7 @@ class _media extends \IPS\Node\Controller
 		$form = new \IPS\Helpers\Form( 'form', 'upload' );
 		$form->class = 'ipsForm_vertical ipsForm_noLabels';
 			
-		$form->add( new \IPS\Helpers\Form\Upload( 'media_filename', NULL, FALSE, array( 'allowedFileTypes' => array_merge( \IPS\File::$safeFileExtensions, array( 'pdf', 'svg' ) ), 'obscure' => FALSE, 'maxFileSize' => 5, 'storageExtension' => 'frontpage_Media', 'storageContainer' => 'fpages_media', 'multiple' => true, 'minimize' => FALSE ), NULL, NULL, NULL, 'media_filename' ) );
+		$form->add( new \IPS\Helpers\Form\Upload( 'media_filename', NULL, FALSE, array( 'allowedFileTypes' => array_merge( \IPS\File::$safeFileExtensions, array( 'pdf', 'svg' ) ), 'obscure' => FALSE, 'storageExtension' => 'frontpage_Media', 'storageContainer' => 'fpages_media', 'multiple' => true, 'minimize' => FALSE ), NULL, NULL, NULL, 'media_filename' ) );
 			
 		if ( ! isset( \IPS\Request::i()->media_parent ) and ! \IPS\Request::i()->media_parent )
 		{
@@ -401,7 +408,7 @@ class _media extends \IPS\Node\Controller
 					}
 				}
 
-				\IPS\Output::i()->sendOutput( json_encode( array( 'count' => $count, 'folderID' => $parent, 'rows' => $rows ) ), 200, 'application/json', \IPS\Output::i()->httpHeaders );
+				\IPS\Output::i()->sendOutput( json_encode( array( 'count' => $count, 'folderID' => $parent, 'rows' => $rows ) ), 200, 'application/json' );
 			}
 			else
 			{
@@ -433,7 +440,7 @@ class _media extends \IPS\Node\Controller
 
 		if( \IPS\Request::i()->isAjax() )
 		{
-			\IPS\Output::i()->sendOutput( json_encode( $rows ), 200, 'application/json', \IPS\Output::i()->httpHeaders );
+			\IPS\Output::i()->sendOutput( json_encode( $rows ), 200, 'application/json' );
 		}
 		else
 		{
@@ -474,7 +481,7 @@ class _media extends \IPS\Node\Controller
 			$output['dimensions'] = $dimensions[0] . ' x ' . $dimensions[1];
 		}
 
-		\IPS\Output::i()->sendOutput( json_encode( $output ), 200, 'application/json', \IPS\Output::i()->httpHeaders );
+		\IPS\Output::i()->sendOutput( json_encode( $output ), 200, 'application/json' );
 	}
 
 	/**

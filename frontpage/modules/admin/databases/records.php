@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                       https://www.devcu.com/donate
  *
  * @brief		Records Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     02 MAY 2019
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -44,6 +44,11 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
  */
 class _records extends \IPS\Dispatcher\Controller
 {	
+	/**
+	 * @brief	Has been CSRF-protected
+	 */
+	public static $csrfProtected = TRUE;
+	
 	/**
 	 * Execute
 	 *
@@ -432,7 +437,12 @@ class _records extends \IPS\Dispatcher\Controller
 				)
 		), NULL, NULL, NULL, 'record_author_choice' ) );
 		
-		$form->add( new \IPS\Helpers\Form\Member( 'record_member_id', ( $currentMember and $currentMember->member_id ) ? $currentMember : NULL, FALSE, array(), NULL, NULL, NULL, 'record_member_id' ) );
+		$form->add( new \IPS\Helpers\Form\Member( 'record_member_id', ( $currentMember and $currentMember->member_id ) ? $currentMember : NULL, FALSE, array(), function( $val ) {
+				if( !$val AND \IPS\Request::i()->record_author_choice == 'notme' )
+				{
+					throw new \DomainException( 'form_required' );
+				}
+		}, NULL, NULL, 'record_member_id' ) );
 
 		if ( isset( $formElements['record_allow_comments'] ) )
 		{
@@ -508,7 +518,7 @@ class _records extends \IPS\Dispatcher\Controller
 				}
 				else if ( ! $current->member_id and $values['record_author_choice'] !== 'guest' )
 				{
-					$values['record_member_id'] = \IPS\Member::loggedIn();
+					$values['record_member_id'] = ( $values['record_author_choice'] === 'me' ) ? \IPS\Member::loggedIn() : $values['record_member_id'];
 					$changeAuthor = TRUE;
 				}
 				else if ( $values['record_author_choice'] === 'me' )
@@ -560,11 +570,11 @@ class _records extends \IPS\Dispatcher\Controller
 				}
 				catch( \LogicException $ex )
 				{
-					/* If the database isn't attached to a content, a call to url() when logging an author change throws this */
+					/* If the database isn't attached to a fpage, a call to url() when logging an author change throws this */
 				}
 			}
 
-			/* Clear guest content caches */
+			/* Clear guest fpage caches */
 			\IPS\Data\Cache::i()->clearAll();
 
 			\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=databases&controller=records&database_id=' . \IPS\Request::i()->database_id ), 'saved' );

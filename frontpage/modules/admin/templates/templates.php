@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                       https://www.devcu.com/donate
  *
  * @brief		Templates Controller
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -45,6 +45,11 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
 class _templates extends \IPS\Dispatcher\Controller
 {
 	/**
+	 * @brief	Has been CSRF-protected
+	 */
+	public static $csrfProtected = TRUE;
+	
+	/**
 	 * Execute
 	 *
 	 * @return	void
@@ -62,8 +67,10 @@ class _templates extends \IPS\Dispatcher\Controller
 	 */
 	public function importInDev()
 	{
+		\IPS\Session::i()->csrfCheck();
+		
 		\IPS\frontpage\Theme::importInDev('database');
-		\IPS\frontpage\Theme::importInDev('fpage');
+		\IPS\frontpage\Theme::importInDev('page');
 
 		\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates' ), 'completed' );
 	}
@@ -88,7 +95,7 @@ class _templates extends \IPS\Dispatcher\Controller
 				move_uploaded_file( $values['frontpage_templates_import'], $tempFile );
 
 				/* Initate a redirector */
-				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=importProcess' )->setQueryString( array( 'file' => $tempFile, 'key' => md5_file( $tempFile ) ) ) );
+				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=importProcess' )->csrf()->setQueryString( array( 'file' => $tempFile, 'key' => md5_file( $tempFile ) ) ) );
 			}
 			else
 			{
@@ -106,100 +113,198 @@ class _templates extends \IPS\Dispatcher\Controller
 	 */
 	public function importProcess()
 	{
+		\IPS\Session::i()->csrfCheck();
+		
 		if ( !file_exists( \IPS\Request::i()->file ) or md5_file( \IPS\Request::i()->file ) !== \IPS\Request::i()->key )
 		{
 			\IPS\Output::i()->error( 'generic_error', '3T285/3', 403, '' );
 		}
 
-		/* Open XML file */
-		$xml = new \IPS\Xml\XMLReader;
-		$xml->open( \IPS\Request::i()->file );
-		$prefix = 'm' . date('m') . '_' . date('d') . '_' . date('y') . '_';
-		$templates = \IPS\frontpage\Theme::i()->getRawTemplates( 'frontpage', NULL, NULL, \IPS\frontpage\Theme::RETURN_ALL );
-		
-		if ( ! @$xml->read() )
+		$result = NULL;
+		try
+		{
+			$result = \IPS\frontpage\Templates::importUserTemplateXml( \IPS\Request::i()->file );
+		}
+		catch( \Throwable $e )
 		{
 			@unlink( \IPS\Request::i()->file );
-			\IPS\Output::i()->error( 'xml_upload_invalid', '2C163/1', 403, '' );
 		}
-		$xml->read();
-		while ( $xml->read() )
+
+		/* Done */
+		if ( $result instanceof \IPS\Http\Url\Internal )
 		{
-			if ( $xml->name === 'template' )
+			\IPS\Output::i()->redirect( $result );
+		}
+		else
+		{
+			\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=manage' ), 'frontpage_templates_imported' );
+		}
+	}
+
+	/**
+	 * Show and manage conflicts
+	 *
+	 * @return void
+	 */
+	public function conflicts()
+	{
+		$key         = \IPS\Request::i()->key;
+		$form        = new \IPS\Helpers\Form( 'form', 'theme_conflict_save' );
+		$conflicts   = array();
+
+		/* If this is part of plugin/app installation, set relevant form data */
+		if( \IPS\Request::i()->application OR \IPS\Request::i()->plugin )
+		{
+			if( \IPS\Request::i()->application )
 			{
-				$node      = new \SimpleXMLElement( $xml->readOuterXML() );
-				$attrs     = array();
+				$form->hiddenValues['application'] = \IPS\Request::i()->application;
+			}
+			elseif( \IPS\Request::i()->plugin )
+			{
+				$form->hiddenValues['plugin'] = \IPS\Request::i()->plugin;
+			}
 
-				foreach( $node->attributes() as $k => $v )
-				{
-					$attrs[ $k ] = (string) $v;
-				}
+			if( \IPS\Request::i()->marketplace )
+			{
+				$form->hiddenValues['marketplace'] = (int) \IPS\Request::i()->marketplace;
+			}
 
-				/* Any kids of your own? */
-				foreach( $node->children() as $k => $v )
-				{
-					$tryJson = json_decode( $v, TRUE );
-					$attrs[ $k ] =  ( $tryJson ) ? $tryJson : (string) $v;
-				}
+			if( \IPS\Request::i()->lang )
+			{
+				$form->hiddenValues['lang'] = \IPS\Request::i()->lang;
+			}
+		}
 
-				if ( isset( $attrs['template_title'] ) and isset( $attrs['template_location'] ) and isset( $attrs['template_group'] ) )
+		/* Get conflict data */
+		foreach( \IPS\Db::i()->select( '*', 'frontpage_template_conflicts', array( 'conflict_key=?', $key ) )->setKeyField( 'conflict_id' ) as $cid => $data )
+		{
+			$conflicts[ $cid ] = $data;
+		}
+
+		require_once \IPS\ROOT_PATH . "/system/3rd_party/Diff/class.Diff.php";
+
+		foreach( $conflicts as $cid => $data )
+		{
+			try
+			{
+				$template = \IPS\frontpage\Templates::load( $data['conflict_item_id'], 'template_id' );
+
+				if ( !\IPS\Login::compareHashes( md5( $data['conflict_content'] ), md5( $template->content ) ) )
 				{
-					/* Got this template? */
-					if ( $attrs['template_location'] === 'database' )
+					if ( mb_strlen( $data['conflict_content'] ) <= 10000 )
 					{
-						/* Database templates are really governed by the group as they are a collection of templates */
-						if ( isset( $templates['frontpage'][$attrs['template_location']][$attrs['template_group']] ) )
-						{
-							$attrs['template_group'] = $prefix . $attrs['template_group'];
-						}
+						$conflicts[ $cid ]['diff'] = \Diff::toTable( \Diff::compare( $template->content, $data['conflict_content'] ) );
+						$conflicts[ $cid ]['large'] = false;
 					}
 					else
 					{
-						/* But post and block templates are not */
-						if ( isset( $templates['frontpage'][$attrs['template_location']][$attrs['template_group']] ) )
-						{
-							$exists = FALSE;
-							foreach ( $templates['frontpage'][$attrs['template_location']][$attrs['template_group']] as $key => $template )
-							{
-								if ( $template['template_title'] === $attrs['template_title'] )
-								{
-									$exists = TRUE;
-									break;
-								}
-							}
-
-							if ( $exists )
-							{
-								$attrs['template_title'] = $prefix . $attrs['template_title'];
-							}
-						}
+						$conflicts[ $cid ]['diff'] = \IPS\Theme::i()->getTemplate( 'customization', 'core' )->templateConflictLarge( $template->content, $data['conflict_content'], 'html' );
+						$conflicts[ $cid ]['large'] = true;
 					}
 
-					$obj                 = new \IPS\frontpage\Templates;
-					$obj->location       = $attrs['template_location'];
-					$obj->group          = $attrs['template_group'];
-					$obj->title          = $attrs['template_title'];
-					$obj->params         = $attrs['template_params'];
-					$obj->content        = $attrs['template_content'];
-					$obj->original_group = $attrs['template_original_group'];
-					$obj->type           = 'template';
-					$obj->user_created   = 1;
-					$obj->user_edited    = 1;
-					$obj->desc           = '';
-					$obj->save();
+					$form->add( new \IPS\Helpers\Form\Radio( 'conflict_' . $data['conflict_id'], 'old', false, array('options' => array('old' => '', 'new' => '')) ) );
+				}
+				else
+				{
+					unset( $conflicts[ $cid ] );
+				}
+			}
+			catch( \Exception $e )
+			{
+				unset( $conflicts[ $cid ] );
+			}
+		}
 
-					$obj->key = $obj->location . \IPS\Http\Url\Friendly::seoTitle( $obj->group ) . '_' . \IPS\Http\Url\Friendly::seoTitle( $obj->title ) . '_' . $obj->id;
-					$obj->save();
+		if ( $values = $form->values() )
+		{
+			$conflicts   = array();
+			$conflictIds = array();
+			$templates = array();
+
+			foreach( $values as $k => $v )
+			{
+				if ( \substr( $k, 0, 9 ) == 'conflict_' )
+				{
+					if ( $v == 'new' )
+					{
+						$conflictIds[ (int) \substr( $k, 9 ) ] = $v;
+					}
 				}
 			}
 
-			$xml->next();
+			if ( \count( $conflictIds ) )
+			{
+				/* Get conflict data */
+				foreach( \IPS\Db::i()->select( '*', 'frontpage_template_conflicts', \IPS\Db::i()->in( 'conflict_id', array_keys( $conflictIds ) ) )->setKeyField( 'conflict_id' ) as $cid => $data )
+				{
+					$conflicts[ $data['conflict_item_id'] ] = $data;
+				}
+			}
+
+			if ( \count( $conflicts ) )
+			{
+				$templates = iterator_to_array( \IPS\Db::i()->select(
+					'*',
+					'frontpage_templates',
+					array( \IPS\Db::i()->in( 'template_id', array_keys( $conflicts ) ) )
+				)->setKeyField( 'template_id' ) );
+			}
+
+			foreach( $templates as $templateid => $template )
+			{
+				if ( isset( $conflicts[ $template['template_id'] ] ) )
+				{
+					try
+					{
+						$templateObj = \IPS\frontpage\Templates::load( $template['template_id'], 'template_id' );
+						$templateObj->params = $conflicts[ $template['template_id'] ]['conflict_data'];
+						$templateObj->content = $conflicts[ $template['template_id'] ]['conflict_content'];
+						$templateObj->user_edited = (int) $templateObj->isDifferentFromMaster();
+						$templateObj->save();
+					}
+					catch( \Exception $e ) { }
+				}
+			}
+
+			/* Clear out conflicts for this theme set */
+			\IPS\Db::i()->delete( 'frontpage_template_conflicts', array('conflict_key=?', \IPS\Request::i()->key ) );
+
+			$lang = NULL;
+			if( !empty( $values['lang'] ) )
+			{
+				$lang = $values['lang'] == 'updated' ? 'app_now_updated' : 'app_now_installed';
+			}
+
+			if( !empty( $values['marketplace'] ) )
+			{
+				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=core&module=marketplace&controller=marketplace&do=viewFile&id=' . $values['marketplace'] ), $lang );
+			}
+			elseif( !empty( $values['application'] ) )
+			{
+				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=core&module=applications&controller=applications' ), $lang );
+			}
+			elseif( !empty( $values['plugin'] ) )
+			{
+				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=core&module=applications&controller=plugins' ), 'plugin_now_installed' );
+			}
+
+			\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=manage' ), 'completed' );
 		}
 
-		@unlink( \IPS\Request::i()->file );
+		if ( \count( $conflicts ) )
+		{
+			\IPS\Output::i()->cssFiles = array_merge( \IPS\Output::i()->cssFiles, \IPS\Theme::i()->css( 'system/diff.css', 'core', 'admin' ) );
+			\IPS\Output::i()->jsFiles = array_merge( \IPS\Output::i()->jsFiles, \IPS\Output::i()->js( 'codemirror/codemirror.js', 'core', 'interface' ) );
+			\IPS\Output::i()->cssFiles = array_merge( \IPS\Output::i()->cssFiles, \IPS\Theme::i()->css( 'codemirror/codemirror.css', 'core', 'interface' ) );
+			\IPS\Output::i()->cssFiles = array_merge( \IPS\Output::i()->cssFiles, \IPS\Theme::i()->css( 'customization/themes.css', 'core', 'admin' ) );
+			\IPS\Output::i()->jsFiles  = array_merge( \IPS\Output::i()->jsFiles, \IPS\Output::i()->js( 'admin_templates.js', 'core', 'admin' ) );
 
-		/* Done */
-		\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=manage' ), 'frontpage_templates_imported' );
+			\IPS\Output::i()->output   = $form->customTemplate( array( \IPS\Theme::i()->getTemplate( 'templates', 'frontpage' ), 'templateConflict' ), $conflicts );
+		}
+		else
+		{
+			\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=manage' ), 'completed' );
+		}
 	}
 
 	/**
@@ -209,149 +314,17 @@ class _templates extends \IPS\Dispatcher\Controller
 	 */
 	public function export()
 	{
-		$form = new \IPS\Helpers\Form( 'form', 'next' );
-		$templates = array();
-
-		$form->addMessage( 'frontpage_templates_export_description', 'ipsMessage ipsMessage_information' );
-		foreach( \IPS\frontpage\Templates::getTemplates( \IPS\frontpage\Templates::RETURN_DATABASE_ONLY + \IPS\frontpage\Templates::RETURN_ALL ) as $template )
-		{
-			$title = \IPS\frontpage\Templates::readableGroupName( $template->group );
-
-			if ( $template->location === 'database' )
-			{
-				$templates['database'][ $template->group ] = $title;
-			}
-			else if ( $template->location === 'block' )
-			{
-				$templates['block'][ $template->key ] = $title . ' &gt; ' . $template->title;
-			}
-			else if ( $template->location === 'fpage' )
-			{
-				$templates['fpage'][ $template->key ] = $title . ' &gt; ' . $template->title;
-			}
-		}
-
-		foreach( $templates as $location => $data )
-		{
-			$form->add( new \IPS\Helpers\Form\CheckboxSet( 'templates_' . $location, FALSE, FALSE, array( 'options' => $data ) ) );
-		}
-		$form->addButton( 'frontpage_templates_export_return', 'link', \IPS\Http\Url::internal( "app=frontpage&module=templates&controller=templates" ) );
+		$form = \IPS\frontpage\Templates::exportForm();
 
 		if ( $values = $form->values() )
 		{
-			$exportTemplates = array();
-			foreach( $templates as $location => $data )
-			{
-				if ( isset( $values[ 'templates_' . $location ] ) and \count( $values[ 'templates_' . $location ] ) )
-				{
-					if ( $location === 'database' )
-					{
-						$tmp = \IPS\frontpage\Theme::i()->getRawTemplates( 'frontpage', array('database'), array_values( $values[ 'templates_' . $location ] ) );
+			$xml = \IPS\frontpage\Templates::exportAsXml( $values );
 
-						foreach( $tmp['frontpage'] as $loc => $data )
-						{
-							if ( $loc === $location )
-							{
-								foreach ( $data as $key => $tdata )
-								{
-									foreach ( $tdata as $tkey => $tkdata )
-									{
-										$exportTemplates['frontpage'][ $location ][ $key ][ $tkey ] = $tkdata;
-									}
-								}
-							}
-						}
-					}
-					else
-					{
-						$tmp = \IPS\frontpage\Theme::i()->getRawTemplates( 'frontpage', array( $location ), NULL, \IPS\frontpage\Theme::RETURN_DATABASE_ONLY + \IPS\frontpage\Theme::RETURN_ALL );
-
-						foreach( $tmp['frontpage'] as $loc => $data )
-						{
-							if ( $loc === $location )
-							{
-								foreach( $data as $key => $tdata )
-								{
-									foreach( $tdata as $tkey => $tkdata )
-									{
-										if ( \in_array( $tkey, $values[ 'templates_' . $location ] ) )
-										{
-											$exportTemplates['frontpage'][ $location ][ $key ][ $tkey ] = $tkdata;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if ( \count( $exportTemplates ) )
-			{
-				/* Init */
-				$xml = new \XMLWriter;
-				$xml->openMemory();
-				$xml->setIndent( TRUE );
-				$xml->startDocument( '1.0', 'UTF-8' );
-
-				/* Root tag */
-				$xml->startElement('templates');
-
-				foreach ( $exportTemplates as $app => $location )
-				{
-					foreach ( $location as $key => $data )
-					{
-						foreach ( $data as $group => $template )
-						{
-							foreach( $template as $key => $templateData )
-							{
-								/* Initiate the <template> tag */
-								$xml->startElement( 'template' );
-
-								foreach ( $templateData as $k => $v )
-								{
-									if ( ! \in_array( \substr( $k, 9 ), array( 'content', 'params' ) ) )
-									{
-										$xml->startAttribute( $k );
-										$xml->text( $v );
-										$xml->endAttribute();
-									}
-								}
-
-								/* Write (potential) HTML fields */
-								foreach( array( 'template_params', 'template_content' ) as $field )
-								{
-									if ( isset( $templateData[ $field ] ) )
-									{
-										$xml->startElement( $field );
-										if ( preg_match( '/<|>|&/', $templateData[ $field ] ) )
-										{
-											$xml->writeCData( str_replace( ']]>', ']]]]><![CDATA[>', $templateData[ $field ] ) );
-										}
-										else
-										{
-											$xml->text( $templateData[ $field ] );
-										}
-										$xml->endElement();
-									}
-								}
-
-								/* Close the <template> tag */
-								$xml->endElement();
-							}
-						}
-					}
-				}
-
-				/* Finish */
-				$xml->endDocument();
-
-				\IPS\Output::i()->sendOutput( $xml->outputMemory(), 200, 'application/xml', array( 'Content-Disposition' => \IPS\Output::getContentDisposition( 'attachment', "templates_templates.xml" ) ) );
-			}
-			else
+			if( $xml === NULL )
 			{
 				\IPS\Output::i()->error( 'frontpage_no_templates_selected', '1T285/1', 403, '' );
 			}
+			\IPS\Output::i()->sendOutput( $xml->outputMemory(), 200, 'application/xml', array( 'Content-Disposition' => \IPS\Output::getContentDisposition( 'attachment', "fpages_templates.xml" ) ) );
 		}
 		
 		\IPS\Output::i()->breadcrumb[] = array( \IPS\Http\Url::internal( "app=frontpage&module=templates&controller=templates" ), \IPS\Member::loggedIn()->language()->addToStack( 'menu__frontpage_templates_templates' ) );
@@ -451,7 +424,7 @@ class _templates extends \IPS\Dispatcher\Controller
 				\IPS\Output::i()->sidebar['actions']['add'] = array(
 					'icon'  => 'cog',
 					'title' => 'content_import_dev_templates',
-					'link'  => \IPS\Http\Url::internal( "app=frontpage&module=templates&controller=templates&do=importInDev" ),
+					'link'  => \IPS\Http\Url::internal( "app=frontpage&module=templates&controller=templates&do=importInDev" )->csrf(),
 					'data'  => array()
 				);
 			}
@@ -548,6 +521,17 @@ class _templates extends \IPS\Dispatcher\Controller
 			{
 				throw new \DomainException( \IPS\Member::loggedIn()->language()->addToStack( 'template_reserved_word', FALSE, array( 'htmlsprintf' => array( \IPS\Member::loggedIn()->language()->formatList( $keywords ) ) ) ) );
 			}
+
+			try
+			{
+				$count = \IPS\Db::i()->select( 'COUNT(*)', 'frontpage_templates', array( "LOWER(template_title)=?", mb_strtolower( str_replace( ' ', '_', $val ) )  ) )->first();
+				
+				if ( $count )
+				{
+					throw new \DomainException( 'frontpage_template_title_exists' );
+				}
+			}
+			catch( \UnderflowException $e ) {}
 		} ) );
 
 		/* Very specific */
@@ -601,13 +585,13 @@ class _templates extends \IPS\Dispatcher\Controller
 		}
 		else
 		{
-			/* Page, css, js */
+			/* Fpage, css, js */
 			switch( $type )
 			{
 				default:
 					$flag = \IPS\frontpage\Theme::RETURN_ONLY_TEMPLATE;
 				break;
-				case 'page':
+				case 'fpage':
 					$flag = \IPS\frontpage\Theme::RETURN_FPAGE;
 				break;
 				case 'js':
@@ -642,7 +626,18 @@ class _templates extends \IPS\Dispatcher\Controller
 				                                 'new'      => array( 'group_new' ) )
 			            ) ) );
 
-			$form->add( new \IPS\Helpers\Form\Text( 'template_group_new', NULL, FALSE, array( 'regex' => '/^([a-z_][a-z0-9_]+?)?$/' ), NULL, NULL, NULL, 'group_new' ) );
+			$form->add( new \IPS\Helpers\Form\Text( 'template_group_new', NULL, FALSE, array( 'regex' => '/^([a-z_][a-z0-9_]+?)?$/' ), function( $val ) {
+				try
+				{
+					$count = \IPS\Db::i()->select( 'COUNT(*)', 'frontpage_templates', array( "LOWER(template_group)=?", mb_strtolower( str_replace( ' ', '_', $val ) )  ) )->first();
+	
+					if ( $count )
+					{
+						throw new \DomainException( 'frontpage_template_group_exists' );
+					}
+				}
+				catch( \UnderflowException $e ) {}
+			}, NULL, NULL, 'group_new' ) );
 			$form->add( new \IPS\Helpers\Form\Select( 'template_group_existing', NULL, FALSE, array( 'options' => $groups ), NULL, NULL, NULL, 'group_existing' ) );
 		}
 
@@ -751,7 +746,7 @@ class _templates extends \IPS\Dispatcher\Controller
 			{
 				$save = array( 'title' => $values['template_title'] );
 
-				/* Page, css, js */
+				/* Fpage, css, js */
 				if ( $type == 'js' or $type == 'css' )
 				{
 					$fileExt = ( $type == 'js' ) ? '.js' : ( $type == 'css' ? '.css' : NULL );
@@ -800,7 +795,7 @@ class _templates extends \IPS\Dispatcher\Controller
 			}
 			else
 			{
-				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates' ), 'saved' );
+				\IPS\Output::i()->redirect( \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates' )->setQueryString( ['id' => $newTemplate->id, 't_location' => $newTemplate->location, 't_type' => $type ] ), 'saved' );
 			}
 		}
 	
@@ -854,7 +849,7 @@ class _templates extends \IPS\Dispatcher\Controller
 			\IPS\Output::i()->error( 'node_error', '3T285/4', 500, '' );
 		}
 
-		/* Clear guest page caches */
+		/* Clear guest fpage caches */
 		\IPS\Data\Cache::i()->clearAll();
 
 		if( \IPS\Request::i()->isAjax() )
@@ -868,12 +863,35 @@ class _templates extends \IPS\Dispatcher\Controller
 	}
 	
 	/**
+	 * Show a difference report for an individual template file
+	 *
+	 * @return	void
+	 */
+	protected function diffTemplate()
+	{
+		$customVersion = \IPS\Db::i()->select( '*', 'frontpage_templates', array( 'template_id=?', (int) \IPS\Request::i()->t_item_id ) )->first();
+		
+		try 
+		{
+			$original = \IPS\Db::i()->select( 'template_content', 'frontpage_templates', array( 'template_location=? and template_group=? and template_title=? and template_master=1', $customVersion['template_location'], $customVersion['template_original_group'], $customVersion['template_title'] ) )->first();
+		}
+		catch( \UnderflowException $e )
+		{
+			$original = FALSE;
+		}
+		
+		\IPS\Output::i()->json( $original );
+	}
+	
+	/**
 	 * Saves a template
 	 * 
 	 * @return void
 	 */
 	public function save()
 	{
+		\IPS\Session::i()->csrfCheck();
+
 		$key = \IPS\Request::i()->t_key;
 		
 		$contentKey = 'editor_' . $key;
@@ -886,11 +904,32 @@ class _templates extends \IPS\Dispatcher\Controller
 		{
 			$obj = \IPS\frontpage\Templates::load( $key );
 			
-			$obj->location    = \IPS\Request::i()->t_location;
-			$obj->group       = empty( \IPS\Request::i()->t_group ) ? null : \IPS\Request::i()->t_group;
-			$obj->title       = \IPS\Request::i()->t_name;
-			$obj->params	  = $variables;
-			$obj->content     = $content;
+			if ( $obj->master )
+			{
+				/* Do not edit a master bit directly, but overload it */
+				$clone = new \IPS\frontpage\Templates;
+				$clone->key = $obj->key;
+				$clone->title = \IPS\Request::i()->t_name;
+				$clone->content = $content;
+				$clone->location = \IPS\Request::i()->t_location;
+				$clone->group = empty( \IPS\Request::i()->t_group ) ? null : \IPS\Request::i()->t_group;
+				$clone->params = $variables;
+				$clone->container = $obj->container;
+				$clone->position = $obj->position;
+				$clone->user_edited = 1;
+				$clone->master = 0;
+				$clone->save();
+			}
+			else
+			{
+				$obj->location = \IPS\Request::i()->t_location;
+				$obj->group = empty( \IPS\Request::i()->t_group ) ? null : \IPS\Request::i()->t_group;
+				$obj->title = \IPS\Request::i()->t_name;
+				$obj->params = $variables;
+				$obj->content = $content;
+				$obj->user_edited = 1;
+			}
+
 			if( $description )
 			{
 				$obj->description = $description;
@@ -924,7 +963,7 @@ class _templates extends \IPS\Dispatcher\Controller
 		/* reload to return new item Id */
 		$obj = \IPS\frontpage\Templates::load( $key );
 
-		/* Clear guest page caches */
+		/* Clear guest fpage caches */
 		\IPS\Data\Cache::i()->clearAll();
 		
 		/* Clear block caches */
@@ -967,8 +1006,25 @@ class _templates extends \IPS\Dispatcher\Controller
 			$form->addMessage( \IPS\Member::loggedIn()->language()->addToStack( 'frontpage_database_template_used_in', NULL, array( 'sprintf' => array( \IPS\Member::loggedIn()->language()->formatList( $names ) ) ) ), 'ipsMessage ipsMessage_info' );
 		}
 		
-		$form->add( new \IPS\Helpers\Form\Text( 'frontpage_database_group_name', \IPS\frontpage\Templates::readableGroupName( \IPS\Request::i()->group ), NULL, array( 'regex' => '/^([A-Z_][A-Z0-9_\.\s]+?)$/i' ) ) );
-		$form->addButton( "delete", "link", \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=deleteTemplateGroup&group=' . \IPS\Request::i()->group . '&t_location=' . \IPS\Request::i()->t_location ), 'ipsButton ipsButton_negative', array( 'data-confirm' => 'true' ) );
+		$form->add( new \IPS\Helpers\Form\Text( 'frontpage_database_group_name', \IPS\frontpage\Templates::readableGroupName( \IPS\Request::i()->group ), NULL, array( 'regex' => '/^([A-Z_][A-Z0-9_\.\s]+?)$/i' ), function( $val ) {
+			/* PHP Keywords cannot be used as template names - so make sure the full template name is not in the list */
+			$keywords = array( 'abstract', 'and', 'array', 'as', 'break', 'callable', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare', 'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare', 'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile', 'eval', 'exit', 'extends', 'final', 'for', 'foreach', 'function', 'global', 'goto', 'if', 'implements', 'include', 'include_once', 'instanceof', 'insteadof', 'interface', 'isset', 'list', 'namespace', 'new', 'or', 'print', 'private', 'protected', 'public', 'require', 'require_once', 'return', 'static', 'switch', 'throw', 'trait', 'try', 'unset', 'use', 'var', 'while', 'xor' );
+			
+			if ( \in_array( $val, $keywords ) )
+			{
+				throw new \DomainException( \IPS\Member::loggedIn()->language()->addToStack( 'template_reserved_word', FALSE, array( 'htmlsprintf' => array( \IPS\Member::loggedIn()->language()->formatList( $keywords ) ) ) ) );
+			}
+			
+			if ( mb_strtolower( str_replace( ' ', '_', $val ) ) != mb_strtolower( str_replace( ' ', '_', \IPS\Request::i()->group ) ) )
+			{
+				$count = \IPS\Db::i()->select( 'COUNT(*)', 'frontpage_templates', array( "LOWER(template_group)=?", mb_strtolower( str_replace( ' ', '_', $val ) ) ) )->first();
+				if ( $count )
+				{
+					throw new \DomainException( 'frontpage_template_group_exists' );
+				}
+			}
+		} ) );
+		$form->addButton( "delete", "link", \IPS\Http\Url::internal( 'app=frontpage&module=templates&controller=templates&do=deleteTemplateGroup&group=' . \IPS\Request::i()->group . '&t_location=' . \IPS\Request::i()->t_location )->csrf(), 'ipsButton ipsButton_negative', array( 'data-confirm' => 'true' ) );
 		
 		if ( $values = $form->values() )
 		{
@@ -1004,6 +1060,8 @@ class _templates extends \IPS\Dispatcher\Controller
 	 */
 	protected function findAndUpdateTemplates( $new, $old )
 	{
+		\IPS\Session::i()->csrfCheck();
+		
 		foreach( \IPS\Db::i()->select( '*', 'frontpage_templates', array( 'template_content LIKE ?', '%' . $old . '%' ) ) as $template )
 		{
 			/* Make sure template tags call the correct group */
@@ -1046,6 +1104,8 @@ class _templates extends \IPS\Dispatcher\Controller
 	 */
 	public function deleteTemplateGroup()
 	{
+		\IPS\Session::i()->csrfCheck();
+		
 		foreach( \IPS\frontpage\Templates::$databaseDefaults as $field => $template )
 		{
 			\IPS\Db::i()->update( 'frontpage_databases', array( 'database_template_' . $field => $template ), array( 'database_template_' . $field . ' =?', \IPS\Request::i()->group ) );

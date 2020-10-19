@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                       https://www.devcu.com/donate
  *
 * @brief		FrontPage Controller
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.0 RC
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     22 MAY 2019
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -45,6 +45,11 @@ exit;
 class _fpages extends \IPS\Node\Controller
 {
 	/**
+	 * @brief	Has been CSRF-protected
+	 */
+	public static $csrfProtected = TRUE;
+	
+	/**
 	 * Node Class
 	 */
 	protected $nodeClass = '\IPS\frontpage\Fpages\Folder';
@@ -61,7 +66,7 @@ class _fpages extends \IPS\Node\Controller
 	 */
 	public function execute()
 	{
-		\IPS\Dispatcher::i()->checkAcpPermission( 'settings_manage' );
+		\IPS\Dispatcher::i()->checkAcpPermission( 'fpage_manage' );
 		parent::execute();
 	}
 
@@ -142,14 +147,6 @@ class _fpages extends \IPS\Node\Controller
            FALSE
 		);
 		
-		/* Add a button for managing DB settings */
-		\IPS\Output::i()->sidebar['actions']['fpagessettings'] = array(
-			'title'		=> 'frontpage_fpages_settings',
-			'icon'		=> 'wrench',
-			'link'		=> \IPS\Http\Url::internal( 'app=frontpage&module=fpages&controller=fpages&do=settings' ),
-			'data'	    => array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('frontpage_fpages_settings') )
-		);
-
 		if ( \IPS\Member::loggedIn()->hasAcpRestriction( 'frontpage', 'fpages', 'fpage_add' )  )
 		{
 			\IPS\Output::i()->sidebar['actions']['add_folder'] = array(
@@ -168,115 +165,6 @@ class _fpages extends \IPS\Node\Controller
 				'data'  => array( 'ipsDialog' => '', 'ipsDialog-title' => \IPS\Member::loggedIn()->language()->addToStack('content_add_fpage') )
 			);
 		}
-	}
-	
-	/**
-	 * Fpage settings form
-	 *
-	 * @return void
-	 */
-	protected function settings()
-	{
-		$url 	  = parse_url( \IPS\Settings::i()->base_url );
-		$disabled = FALSE;
-		$options  = array();
-		$url['path'] = preg_replace( '#^/?(.+?)?/?$#', '\1', $url['path'] );
-		
-		$disabled = ( \IPS\Settings::i()->frontpage_use_different_gateway or $url['path'] ) ? FALSE : TRUE;
-		$dirs     = explode( '/', $url['path'] );
-		
-		if ( \count( $dirs ) )
-		{
-			array_pop( $dirs );
-			$base = $url['scheme'] . '://' . $url['host'];
-			if ( isset( $url['port'] ) )
-			{
-				$base .= ':' .$url['port'];
-			}
-
-			$base .= '/';
-			$options[ $base ] = $base;
-			foreach( $dirs as $dir )
-			{
-				$base .= $dir . '/'; 
-				$options[ $base ] = $base;
-			}
-		}
-		
-		if ( $disabled )
-		{
-			\IPS\Member::loggedIn()->language()->words['frontpage_use_different_gateway_warning'] = \IPS\Member::loggedIn()->language()->addToStack('frontpage_fpages_different_gateway_impossible');
-		}
-		
-		if ( \IPS\Settings::i()->htaccess_mod_rewrite )
-		{
-			\IPS\Member::loggedIn()->language()->words['frontpage_root_fpage_url_desc'] = \IPS\Member::loggedIn()->language()->addToStack('frontpage_root_fpage_url_rewrite_desc');
-		}
-		
-		$form = new \IPS\Helpers\Form( 'form', 'save' );
-		$form->add( new \IPS\Helpers\Form\YesNo( 'frontpage_use_different_gateway', \IPS\Settings::i()->frontpage_use_different_gateway, FALSE, array( 'togglesOn' => array( 'frontpage_root_fpage_url' ), 'disabled' => $disabled ) ) );
-		$form->add( new \IPS\Helpers\Form\Select( 'frontpage_root_fpage_url', \IPS\Settings::i()->frontpage_root_fpage_url, FALSE, array( 'options' => $options ), function( $val )
-		{
-			if ( $val and \IPS\Request::i()->frontpage_use_different_gateway )
-			{
-				if ( mb_substr( $val, -1 ) !== '/' )
-				{
-					$val .= '/';
-				}
-				
-				$fpage = \IPS\frontpage\Fpages\Fpage::getDefaultFpage();
-				
-				$response = \IPS\Http\Url::external( ( \IPS\Settings::i()->htaccess_mod_rewrite ? $val . $fpage->full_path : $val . 'index.php?/' . $fpage->full_path ) )->request( NULL, NULL, FALSE )->get();
-				
-				if ( $response->httpResponseCode != 200 and $response->httpResponseCode != 303 and ( \IPS\Settings::i()->site_online OR $response->httpResponseCode != 503 ) )
-				{
-					if ( \IPS\Settings::i()->htaccess_mod_rewrite )
-					{
-						throw new \LogicException( 'fpages_different_gateway_load_error_rewrite' );
-					}
-					else
-					{
-						throw new \LogicException( 'fpages_different_gateway_load_error' );
-					}
-				}
-			}
-		}, NULL, NULL, 'frontpage_root_fpage_url' ) );
-
-		$form->add( new \IPS\Helpers\Form\Node( 'frontpage_error_fpage', \IPS\Settings::i()->frontpage_error_fpage ? \IPS\Settings::i()->frontpage_error_fpage : 0, FALSE,array(
-			'class'           => '\IPS\frontpage\Fpages\Fpage',
-			'zeroVal'         => 'frontpage_error_fpage_none',
-			'subnodes'		  => true,
-			'permissionCheck' => function( $node )
-			{
-				return $node->type == 'html';
-			}
-		) ) );
-
-		if ( $values = $form->values() )
-		{
-			$form->saveAsSettings();
-			\IPS\Member::clearCreateMenu();
-									
-			/* Clear Sidebar Caches */
-			\IPS\Widget::deleteCaches();
-			
-			/* Possible gateway choice changed and thusly menu and fpage_urls will change */
-			if ( isset( \IPS\Data\Store::i()->fpages_fpage_urls ) )
-			{
-				unset( \IPS\Data\Store::i()->fpages_fpage_urls  );
-			}
-			
-			if ( isset( \IPS\Data\Store::i()->frontNavigation ) )
-			{
-				unset( \IPS\Data\Store::i()->frontNavigation  );
-			}
-			
-			\IPS\Output::i()->redirect( \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpages" ), 'saved' );
-		}
-	
-		/* Display */
-		\IPS\Output::i()->output .= \IPS\Theme::i()->getTemplate( 'global', 'core', 'admin' )->block( \IPS\Member::loggedIn()->language()->addToStack('frontpage_fpages_settings'), $form, FALSE );
-		\IPS\Output::i()->title  = \IPS\Member::loggedIn()->language()->addToStack('frontpage_fpages_settings');
 	}
 	
 	/**
@@ -370,6 +258,7 @@ FILE;
 	{
 		if ( isset( \IPS\Request::i()->id ) )
 		{
+			\IPS\Session::i()->csrfCheck();
 			\IPS\frontpage\Fpages\Fpage::deleteCompiled( \IPS\Request::i()->id );
 		}
 
@@ -383,7 +272,20 @@ FILE;
 	 */
 	protected function setAsDefault()
 	{
+		\IPS\Session::i()->csrfCheck();
 		\IPS\frontpage\Fpages\Fpage::load( \IPS\Request::i()->id )->setAsDefault();
+		\IPS\Output::i()->redirect( \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpages" ), 'saved' );
+	}
+
+	/**
+	 * Set as default error page
+	 *
+	 * @return void
+	 */
+	protected function toggleDefaultError()
+	{
+		\IPS\Session::i()->csrfCheck();
+		\IPS\Settings::i()->changeValues( array( 'frontpage_error_page' => \IPS\Request::i()->id ? \IPS\Request::i()->id : NULL ) );
 		\IPS\Output::i()->redirect( \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpages" ), 'saved' );
 	}
 
