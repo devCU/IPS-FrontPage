@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                      https://www.devcu.com/donate/
+ *                       https://www.devcu.com/donate
  *
  * @brief		CMS Widgets
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4.10 FINAL
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
  * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     12 AUG 2020
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -117,7 +117,7 @@ class _Widget extends \IPS\Widget
 
 					foreach( $widgets as $widget )
 					{
-						if ( $widget['app'] === 'frontpage' and $widget['key'] === 'Blocks' and isset( $widget['unique'] ) and isset( $widget['configuration'] ) and isset( $widget['configuration']['frontpage_widget_custom_block'] ) )
+						if ( ( isset( $widget['app'] ) and $widget['app'] === 'frontpage' ) and $widget['key'] === 'Blocks' and isset( $widget['unique'] ) and isset( $widget['configuration'] ) and isset( $widget['configuration']['frontpage_widget_custom_block'] ) )
 						{
 							if ( \in_array( $widget['configuration']['frontpage_widget_custom_block'], array_keys( $blocks ) ) )
 							{
@@ -133,7 +133,7 @@ class _Widget extends \IPS\Widget
 
 					foreach( $widgets as $widget )
 					{
-						if ( $widget['app'] === 'frontpage' and $widget['key'] === 'Blocks' and isset( $widget['unique'] ) and isset( $widget['configuration'] ) and isset( $widget['configuration']['frontpage_widget_custom_block'] ) )
+						if ( ( isset( $widget['app'] ) and $widget['app'] === 'frontpage' ) and $widget['key'] === 'Blocks' and isset( $widget['unique'] ) and isset( $widget['configuration'] ) and isset( $widget['configuration']['frontpage_widget_custom_block'] ) )
 						{
 							if ( \in_array( $widget['configuration']['frontpage_widget_custom_block'], array_keys( $blocks ) ) )
 							{
