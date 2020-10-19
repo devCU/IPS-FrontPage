@@ -1,19 +1,19 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.patreon.com/devcu
+ *                       https://www.devcu.com/donate
  *
- * @brief		Fields Model
+ * @brief		Categories Model
  * @author      Gary Cornell for devCU Software Open Source Projects
  * @copyright   (c) <a href='https://www.devcu.com'>devCU Software Development</a>
  * @license     GNU General Public License v3.0
- * @package     Invision Community Suite 4.4+
+ * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.0
+ * @version     1.0.5 Stable
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     02 MAY 2019
+ * @Updated     19 OCT 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -44,6 +44,11 @@ if ( !\defined( '\IPS\SUITE_UNIQUE_KEY' ) )
  */
 class _categories extends \IPS\Node\Controller
 {
+	/**
+	 * @brief	Has been CSRF-protected
+	 */
+	public static $csrfProtected = TRUE;
+	
 	/**
 	 * Node Class
 	 */
@@ -103,7 +108,7 @@ class _categories extends \IPS\Node\Controller
 	 *
 	 * @param	array	$order	The new ordering that was saved
 	 * @return	void
-	 * @note	Contents needs to readjust category_full_path values when a category is moved to a different category
+	 * @note	Fpages needs to readjust category_full_path values when a category is moved to a different category
 	 */
 	protected function _afterReorder( $order )
 	{
