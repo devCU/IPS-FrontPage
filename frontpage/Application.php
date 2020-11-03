@@ -244,7 +244,7 @@ class _Application extends \IPS\Application
 				'controller'  => 'records',
 				'do' 		  => 'manage&database_id=' . $database['id'],
 				'restriction' => 'records_manage',
-				'restriction_module' => 'databases'
+				'restriction_module' => 'databases',
 				'menu_checks' => array( 'do' => 'manage', 'database_id' => $database['id'] ),
 				'menu_controller' => 'records_' . $database['id']
 			);
@@ -257,7 +257,7 @@ class _Application extends \IPS\Application
 					'controller'  => 'categories',
 					'do' 		  => 'manage&database_id=' . $database['id'],
 					'restriction' => 'categories_manage',
-					'restriction_module' => 'databases'
+					'restriction_module' => 'databases',
 					'menu_checks' => array( 'do' => 'manage', 'database_id' => $database['id'] ),
 					'menu_controller' => 'categories_' . $database['id']
 				);
@@ -269,7 +269,7 @@ class _Application extends \IPS\Application
 				'controller'  => 'fields',
 				'do' 		  => 'manage&database_id=' . $database['id'],
 				'restriction' => 'frontpage_fields_manage',
-				'restriction_module' => 'databases'
+				'restriction_module' => 'databases',
 				'menu_checks' => array( 'do' => 'manage', 'database_id' => $database['id'] ),
 				'menu_controller' => 'fields_' . $database['id']
 			);
