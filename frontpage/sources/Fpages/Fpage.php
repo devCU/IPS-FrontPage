@@ -1,7 +1,7 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.devcu.com/donate
+ *                            https://www.devcu.com/donate
  *
  * @brief		FrontPage Model
  * @author      Gary Cornell for devCU Software Open Source Projects
@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.5 Stable
+ * @version     4.5.4 Build 205010
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     15 OCT 2020
+ * @Updated     22 DEC 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -836,7 +836,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 	}
 
 	/**
-	 * Ensure there aren't any collision issues when the CMS is the default app and folders such as "forums" are created when
+	 * Ensure there aren't any collision issues when FrontPage is the default app and folders such as "forums" are created when
 	 * the forums app is installed.
 	 *
 	 * @param   string  $path   Path to check
@@ -956,7 +956,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 		}
 		
 		\IPS\Data\Store::i()->fpages_fpage_urls = $store;
-		
+
 		\IPS\Member::clearCreateMenu();
 	}
 	
@@ -1462,7 +1462,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 				'link'	=> $url->setQueryString( array( 'id' => \IPS\Settings::i()->frontpage_error_fpage ? 0 : $this->id, 'subnode' => 1, 'do' => 'toggleDefaultError' ) )->csrf()
 			);
 		}
-		
+
 		$return['view'] = array(
 			'icon'	   => 'search',
 			'title'    => 'content_launch_fpage',
@@ -1535,7 +1535,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 		if ( ! $this->id )
 		{
-			$form->addTab( 'content_fpage_form_tab__menu' );
+			$form->addTab( 'content_fpage_form_tab__menu', NULL, NULL, 'ipsForm_horizontal' );
 			$toggles    = array( 'menu_manager_access_type', 'menu_parent' );
 			$formFields = array();
 			
@@ -2203,7 +2203,7 @@ class _Fpage extends \IPS\Node\Model implements \IPS\Node\Permissions
 		if ( $this->full_path and \IPS\Theme::designersModeEnabled() )
 		{
 			static::exportDesignersMode( $this->id );
-		}		
+		}
 	}
 		
 	/**
