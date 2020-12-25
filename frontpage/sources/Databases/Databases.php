@@ -1,7 +1,7 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.devcu.com/donate
+ *                            https://www.devcu.com/donate
  *
  * @brief		Databases Model
  * @author      Gary Cornell for devCU Software Open Source Projects
@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.5 Stable
+ * @version     4.5.4 Build 205010
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     15 OCT 2020
+ * @Updated     22 DEC 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -267,7 +267,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	public function canImportRss(): bool
 	{
-		if ( ! $this->page_id )
+		if ( ! $this->fpage_id )
 		{
 			return FALSE;
 		}
@@ -387,7 +387,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 
 		return $fixes;
 	}
-
+	
 	/**
 	 * Create a new database
 	 * 
@@ -753,23 +753,23 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 	 */
 	public function fpageTitle()
 	{
-		if ( $fpageTitle === NULL )
+		if ( $this->fpageTitle === NULL )
 		{
 			if ( $this->use_as_fpage_title )
 			{ 
-				$fpageTitle = $this->_title;
+				$this->fpageTitle = $this->_title;
 			}
 			else
 			{
 				try
 				{
-					$fpageTitle = \IPS\frontpage\Fpages\Fpage::load( $this->fpage_id )->getHtmlTitle();
+					$this->fpageTitle = \IPS\frontpage\Fpages\Fpage::load( $this->fpage_id )->getHtmlTitle();
 				}
 				catch( \Exception $e ) { }
 			}
 		}
 		
-		return $fpageTitle;
+		return $this->fpageTitle;
 	}
 	
 	/**
@@ -1237,7 +1237,7 @@ class _Databases extends \IPS\Node\Model implements \IPS\Node\Permissions
 		
 		try
 		{
-			$pagePath   = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $this->id )->full_path;
+			$fpagePath   = \IPS\frontpage\Fpages\Fpage::loadByDatabaseId( $this->id )->full_path;
 			$return['url'] = (string) \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . $fpagePath, 'front', 'content_fpage_path' );
 		}
 		catch( \OutOfRangeException $ex )
