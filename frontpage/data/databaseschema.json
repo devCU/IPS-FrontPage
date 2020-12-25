@@ -740,14 +740,14 @@
             },
             "record_meta_data": {
                 "name": "record_meta_data",
-                "type": "BIT",
+                "type": "TINYINT",
                 "length": 1,
                 "decimals": null,
                 "values": null,
                 "allow_null": false,
                 "default": "0",
                 "comment": "",
-                "unsigned": false,
+                "unsigned": true,
                 "zerofill": false,
                 "auto_increment": false,
                 "binary": false
@@ -801,7 +801,8 @@
                     null
                 ],
                 "columns": [
-                    "category_id"
+                    "category_id",
+                    "record_last_comment"
                 ]
             },
             "listing_look_up": {
@@ -836,6 +837,18 @@
                     "member_id",
                     "record_last_comment",
                     "record_last_review"
+                ]
+            },
+            "future_entries": {
+                "type": "key",
+                "name": "future_entries",
+                "length": [
+                    null,
+                    null
+                ],
+                "columns": [
+                    "record_future_date",
+                    "record_publish_date"
                 ]
             }
         },
