@@ -1,7 +1,7 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.devcu.com/donate
+ *                            https://www.devcu.com/donate
  *
  * @brief		Database Dispatcher
  * @author      Gary Cornell for devCU Software Open Source Projects
@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.5 Stable
+ * @version     4.5.4 Build 205010
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     15 OCT 2020
+ * @Updated     22 DEC 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -187,13 +187,13 @@ class _Dispatcher extends \IPS\Dispatcher
 
 		$path = trim(  preg_replace( '#' . \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path . '#', '', \IPS\Request::i()->path, 1 ), '/' );
 
-		/* If we visited the default fpage in a folder, the full_path will be like folder/page but the request path will just be folder */
+		/* If we visited the default fpage in a folder, the full_path will be like folder/fpage but the request path will just be folder */
 		if( \IPS\Request::i()->path . '/' . \IPS\frontpage\Fpages\Fpage::$currentFpage->seo_name == \IPS\frontpage\Fpages\Fpage::$currentFpage->full_path )
 		{
 			$path = '';
 		}
 	
-		list( $path, $pageNumber ) = \IPS\frontpage\Fpages\Fpage::getStrippedFpagePath( $path );
+		list( $path, $fpageNumber ) = \IPS\frontpage\Fpages\Fpage::getStrippedFpagePath( $path );
 		
 		$this->databaseId = $database->id;
 
