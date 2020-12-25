@@ -54,7 +54,7 @@
 
 - Complete refactoring of code and structure for IPS 4.5x
 - Sync Version with IPS >> 4.5.4
-- Please report and issues, feature requests, or suggestions in Issues
+- Please report any issues, feature requests, or suggestions in Issues
 
 
 ## License
