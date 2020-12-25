@@ -1,7 +1,7 @@
 <?php
 /**
  *     Support this Project... Keep it free! Become an Open Source Patron
- *                       https://www.devcu.com/donate
+ *                            https://www.devcu.com/donate
  *
  * @brief		Records Model
  * @author      Gary Cornell for devCU Software Open Source Projects
@@ -9,11 +9,11 @@
  * @license     GNU General Public License v3.0
  * @package     Invision Community Suite 4.5x
  * @subpackage	FrontPage
- * @version     1.0.5 Stable
+ * @version     4.5.4 Build 205010
  * @source      https://github.com/devCU/IPS-FrontPage
  * @Issue Trak  https://www.devcu.com/devcu-tracker/
  * @Created     25 APR 2019
- * @Updated     15 OCT 2020
+ * @Updated    22 DEC 2020
  *
  *                    GNU General Public License v3.0
  *    This program is free software: you can redistribute it and/or modify       
@@ -255,7 +255,7 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	public static function loadFromUrl( \IPS\Http\Url $url )
 	{
-		/* First, make sure the PAGE matches */
+		/* First, make sure the FPAGE matches */
 		$fpage = \IPS\frontpage\Fpages\Fpage::loadFromUrl( $url );
 
 		if( $fpage->_id != static::database()->fpage_id )
@@ -276,7 +276,7 @@ class _Records extends \IPS\Content\Item implements
 			}
 			catch ( \Exception $e ) { }
 		}
-		
+
 		return parent::loadFromUrl( $url );
 	}
 
@@ -590,7 +590,7 @@ class _Records extends \IPS\Content\Item implements
 			$fixedFieldSettings = static::database()->fixed_field_settings;
 			$dims = TRUE;
 
-			if ( isset( $fixedFieldSettings['record_image']['image_dims'] ) )
+			if ( isset( $fixedFieldSettings['record_image']['image_dims'] ) AND $fixedFieldSettings['record_image']['image_dims'][0] AND $fixedFieldSettings['record_image']['image_dims'][1] )
 			{
 				$dims = array( 'maxWidth' => $fixedFieldSettings['record_image']['image_dims'][0], 'maxHeight' => $fixedFieldSettings['record_image']['image_dims'][1] );
 			}
@@ -644,7 +644,7 @@ class _Records extends \IPS\Content\Item implements
 				$values[] = 'pin';
 			}
 		}
-			
+		
 		$canHide = ( $item ) ? $item->canHide() : ( \IPS\Member::loggedIn()->group['g_hide_own_posts'] == '1' or \in_array( 'IPS\frontpage\Records' . $database->id, explode( ',', \IPS\Member::loggedIn()->group['g_hide_own_posts'] ) ) );
 		if ( static::modPermission( 'hide', NULL, $container ) or $canHide )
 		{
@@ -967,7 +967,7 @@ class _Records extends \IPS\Content\Item implements
 		{
 			if ( mb_substr( $k, 0, 14 ) === 'content_field_' )
 			{
-				$customValues[$k ] = $v;
+				$customValues[ $k ] = $v;
 			}
 		}
 
@@ -1245,6 +1245,26 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	public function url( $action=NULL )
 	{
+		if( $action == 'getPrefComment' )
+		{
+			$pref = \IPS\Member::loggedIn()->linkPref() ?: \IPS\Settings::i()->link_default;
+
+			switch( $pref )
+			{
+				case 'unread':
+					$action = 'getNewComment';
+					break;
+
+				case 'last':
+					$action = 'getLastComment';
+					break;
+
+				default:
+					$action = NULL;
+					break;
+			}
+		}
+
 		if ( ! $this->recordFpage )
 		{
 			/* If we're coming through the database controller embedded in a fpage, $currentFpage will be set. If we're coming in via elsewhere, we need to fetch the fpage */
@@ -1375,10 +1395,31 @@ class _Records extends \IPS\Content\Item implements
 	 *
 	 * @param	array		$indexData		Data from the search index
 	 * @param	array		$itemData		Basic data about the item. Only includes columns returned by item::basicDataColumns()
+	 * @param	string|NULL	$action			Action
 	 * @return	\IPS\Http\Url
 	 */
-	public static function urlFromIndexData( $indexData, $itemData )
+	public static function urlFromIndexData( $indexData, $itemData, $action = NULL )
 	{
+		if( $action == 'getPrefComment' )
+		{
+			$pref = \IPS\Member::loggedIn()->linkPref() ?: \IPS\Settings::i()->link_default;
+
+			switch( $pref )
+			{
+				case 'unread':
+					$action = 'getNewComment';
+					break;
+
+				case 'last':
+					$action = 'getLastComment';
+					break;
+
+				default:
+					$action = NULL;
+					break;
+			}
+		}
+
 		if ( static::$fpagePath === NULL )
 		{
 			static::$fpagePath = \IPS\Db::i()->select( array( 'fpage_full_path' ), 'frontpage_fpages', array( 'fpage_id=?', static::database()->fpage_id ) )->first();
@@ -1388,12 +1429,19 @@ class _Records extends \IPS\Content\Item implements
 		
 		if ( static::database()->use_categories )
 		{
-			return \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . static::$fpagePath . '/' . $itemData['extra'] . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
+			$url = \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . static::$fpagePath . '/' . $itemData['extra'] . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
 		}
 		else
 		{
-			return \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . static::$fpagePath . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
+			$url = \IPS\Http\Url::internal( "app=frontpage&module=fpages&controller=fpage&path=" . static::$fpagePath . '/' . $recordSlug, 'front', 'content_fpage_path', $recordSlug );
 		}
+
+		if( $action )
+		{
+			$url = $url->setQueryString( 'do', $action );
+		}
+
+		return $url;
 	}
 
 	/**
@@ -1470,15 +1518,22 @@ class _Records extends \IPS\Content\Item implements
 	/**
 	 * Returns the content images
 	 *
-	 * @param	int|null	$limit	Number of attachments to fetch, or NULL for all
-	 * @return	array|NULL	If array, then array( 'core_Attachment' => 'month_x/foo.gif', ... );
+	 * @param	int|null	$limit				Number of attachments to fetch, or NULL for all
+	 * @param	bool		$ignorePermissions	If set to TRUE, permission to view the images will not be checked
+	 * @return	array|NULL
 	 * @throws	\BadMethodCallException
 	 */
-	public function contentImages( $limit = NULL )
+	public function contentImages( $limit = NULL, $ignorePermissions = FALSE )
 	{
 		$idColumn = static::$databaseColumnId;
 		$attachments = array();
 		
+		/* Record image */
+		if ( $this->record_image )
+		{
+			$attachments[] = array( 'frontpage_Records' => $this->record_image );
+		}
+
 		$internal = \IPS\Db::i()->select( 'attachment_id', 'core_attachments_map', array( '(location_key=? OR location_key=?) and id1=? and id3=?', 'frontpage_Records', 'frontpage_Records' . static::$customDatabaseId, $this->$idColumn, static::$customDatabaseId ) );
 		
 		/* Attachments */
@@ -1486,19 +1541,13 @@ class _Records extends \IPS\Content\Item implements
 		{
 			$attachments[] = array( 'core_Attachment' => $row['attach_location'] );
 		}
-		
-		/* Record image */
-		if ( $this->record_image )
-		{
-			$attachments[] = array( 'frontpage_Records' => $this->record_image );
-		}
-		
+			
 		/* Any upload fields */
 		$categoryClass = 'IPS\frontpage\Categories' . static::$customDatabaseId;
 		$container = $categoryClass::load( $this->category_id );
 		$fieldsClass  = 'IPS\frontpage\Fields' . static::$customDatabaseId;
 		$fieldValues = $this->fieldValues();
-		$customFields = $fieldsClass::fields( $fieldValues, 'edit', $container, 0, $this );
+		$customFields = $fieldsClass::fields( $fieldValues, $ignorePermissions ? NULL : 'edit', $container, 0, $this );
 
 		foreach( $customFields as $key => $field )
 		{
@@ -2087,6 +2136,23 @@ class _Records extends \IPS\Content\Item implements
 	}
 
 	/**
+	 * Move
+	 *
+	 * @param	\IPS\Node\Model	$container	Container to move to
+	 * @param	bool			$keepLink	If TRUE, will keep a link in the source
+	 * @return	void
+	 */
+	public function move( \IPS\Node\Model $container, $keepLink=FALSE )
+	{
+		parent::move( $container, $keepLink );
+
+		if( $this->record_static_furl )
+		{
+			$this->storeUrl();
+		}
+	}
+
+	/**
 	 * Get comments
 	 *
 	 * @param	int|NULL			$limit					The number to get (NULL to use static::getCommentsPerFpage())
@@ -2136,6 +2202,16 @@ class _Records extends \IPS\Content\Item implements
 		if( static::$commentClass != 'IPS\frontpage\Records\CommentTopicSync' . static::$customDatabaseId )
 		{
 			$where = array( array( 'comment_database_id=?', static::$customDatabaseId ) );
+			
+			if( $extraWhereClause !== NULL )
+			{
+				if ( !\is_array( $extraWhereClause ) or !\is_array( $extraWhereClause[0] ) )
+				{
+					$extraWhereClause = array( $extraWhereClause );
+				}
+				
+				$where = array_merge( $where, $extraWhereClause );
+			}
 		}
 		
 		return parent::comments( $limit, $offset, $order, $orderDirection, $member, $includeHiddenComments, $cutoff, $where, $bypassCache, $includeDeleted, $canViewWarn );
@@ -2533,7 +2609,7 @@ class _Records extends \IPS\Content\Item implements
 		
 		return parent::lastCommenter();
 	}
-	
+
 	/**
 	 * Is this topic linked to a record?
      *
@@ -2542,26 +2618,13 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	public static function topicIsLinked( $topic )
 	{
-		foreach( \IPS\frontpage\Databases::databases() as $database )
-		{
-			try
-			{
-				if ( $database->forum_record and $database->forum_forum == $topic->container()->_id )
-				{
-					$class = '\IPS\frontpage\Records' . $database->id;
-					$record = $class::load( $topic->tid, 'record_topicid' );
-				
-					if ( $record->_forum_record )
-					{
-						return TRUE;
-					}
-				}
-			}
-			catch( \Exception $e ) { }
-		}
-		
-		return FALSE;
+		return ( static::getLinkedRecord( $topic ) === NULL ) ? FALSE : TRUE;
 	}
+
+	/**
+	 * @brief	Cached linked record checks to prevent duplicate queries
+	 */
+	protected static $linkedRecordLookup = array();
 	
 	/**
 	 * Is this topic linked to a record?
@@ -2571,6 +2634,13 @@ class _Records extends \IPS\Content\Item implements
 	 */
 	public static function getLinkedRecord( $topic )
 	{
+		if( array_key_exists( $topic->tid, static::$linkedRecordLookup ) )
+		{
+			return static::$linkedRecordLookup[ $topic->tid ];
+		}
+
+		static::$linkedRecordLookup[ $topic->tid ] = NULL;
+
 		foreach( \IPS\frontpage\Databases::databases() as $database )
 		{
 			try
@@ -2582,14 +2652,14 @@ class _Records extends \IPS\Content\Item implements
 				
 					if ( $record->_forum_record )
 					{
-						return $record;
+						static::$linkedRecordLookup[ $topic->tid ] = $record;
 					}
 				}
 			}
 			catch( \Exception $e ) { }
 		}
 		
-		return NULL;
+		return static::$linkedRecordLookup[ $topic->tid ];
 	}
 	
 	/**
@@ -2618,9 +2688,10 @@ class _Records extends \IPS\Content\Item implements
 	/**
 	 * Post this record as a forum topic
 	 *
+	 * @param	bool		$commentCheck	Check if comments need synced as well.
 	 * @return void
 	 */
-	public function syncTopic()
+	public function syncTopic( $commentCheck = TRUE )
 	{
 		if ( ! \IPS\Application::appIsEnabled( 'forums' ) )
 		{
@@ -2724,6 +2795,12 @@ class _Records extends \IPS\Content\Item implements
 			/* Update file */
 			$this->record_topicid = $topic->tid;
 			$this->save();
+			
+			/* Do any comments need moving over? */
+			if ( $commentCheck AND $this->useForumComments() AND (bool) \IPS\Db::i()->select( 'COUNT(*)', 'frontpage_database_comments', array( "comment_database_id=? AND comment_record_id=?", static::$customDatabaseId, $this->primary_id_field ) )->first() )
+			{
+				\IPS\Task::queue( 'frontpage', 'MoveSingleRecord', array( 'databaseId' => static::$customDatabaseId, 'recordId' => $this->primary_id_field, 'to' => 'forums' ), 3, array( 'databaseId', 'recordId', 'to' ) );
+			}
 			
 			/* Reindex to update search index */
 			\IPS\Content\Search\Index::i()->index( $post );
@@ -3507,10 +3584,10 @@ class _Records extends \IPS\Content\Item implements
 	 * @apiresponse	bool					hidden			Event is hidden
 	 * @apiresponse	bool					pinned			Event is pinned
 	 * @apiresponse	bool					featured		Event is featured
-	 * @apiresponse	string|NULL				url	
+	 * @apiresponse	string|NULL				url				URL, or NULL if the database has not been embedded onto a page
 	 * @apiresponse	float					rating			Average Rating
-	 * @apiresponse string					image			Record Image
-	 * @apiresponse \IPS\forums\Topic		topic			The topic
+	 * @apiresponse	string					image			Record Image
+	 * @apiresponse	\IPS\forums\Topic		topic			The topic
 	 */
 	public function apiOutput( \IPS\Member $authorizedMember = NULL )
 	{
